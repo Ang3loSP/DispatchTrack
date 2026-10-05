@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DispatchTrack.API.Tests/DispatchTrack.API.Tests.csproj" />
+  <Project Path="DispatchTrack.API/DispatchTrack.API.csproj" />
+</Solution>
