@@ -137,15 +137,33 @@ About 20 weeks at 4 hrs/week (16 at 5, 27 at 3). Add 1-2 buffer weeks around AIE
 
 ### 📋 Next Session Agenda (Phase 1 Kick-off)
 
-1. **Switch EF Core to PostgreSQL (Npgsql):**
-   - Replace `Microsoft.EntityFrameworkCore.SqlServer` with `Npgsql.EntityFrameworkCore.PostgreSQL` in `DispatchTrack.API.csproj`.
-   - Update `Program.cs` to `opt.UseNpgsql(...)`.
-   - Configure PostgreSQL optimistic concurrency on `Job` via `builder.Entity<Job>().UseXminAsConcurrencyToken()`.
-   - Remove old SQL Server migration files and generate new PostgreSQL initial migration.
-2. **Neon Database Setup:**
-   - Create free project on Neon and add connection string to `appsettings.Development.json` / `.env.example`.
-3. **Phase 1 Auth Implementation:**
-   - Implement JWT access tokens (15-min expiry) with `Authorization: Bearer`.
-   - Implement rotating refresh tokens (7-day, hashed in DB, `httpOnly` secure cookies).
-   - Wire up ASP.NET Identity `PasswordHasher<User>`.
-   - Configure Swagger UI to accept JWT Bearer authentication.
+1. **Switch EF Core to PostgreSQL (Npgsql):** [x] Completed
+   - [x] Replace `Microsoft.EntityFrameworkCore.SqlServer` with `Npgsql.EntityFrameworkCore.PostgreSQL 10.0.0` in `DispatchTrack.API.csproj`.
+   - [x] Update `Program.cs` to `opt.UseNpgsql(...)`.
+   - [x] Configure PostgreSQL optimistic concurrency on `Job` via `xmin` system column.
+   - [x] Remove old SQL Server migration files and generate new PostgreSQL initial migration.
+2. **Neon Database Setup:** [x] Completed
+   - [x] Create project on Neon, configure `.env.example`, and apply initial migration with `dotnet ef database update`.
+3. **Phase 1 Auth Implementation:** [x] Completed
+   - [x] Implement JWT access tokens (15-min expiry) with `Authorization: Bearer`.
+   - [x] Implement rotating refresh tokens (7-day, hashed with SHA-256 in DB, `httpOnly`, `SameSite=Strict` cookies).
+   - [x] Wire up ASP.NET Identity `PasswordHasher<User>`.
+   - [x] Configure Swagger UI to accept JWT Bearer authentication.
+   - [x] Implement `DataSeeder` for demo accounts (Admin, Dispatcher, Driver) and sample jobs.
+   - [x] Add 7 automated unit and integration tests (100% passing).
+
+---
+
+### 📋 Next Session Agenda (Phase 2: Core Domain Endpoints)
+
+1. **User Management (`/api/users`)**:
+   - `POST /api/users` (Admin only) to provision Dispatcher and Driver accounts.
+2. **Job Lifecycle & State Machine (`/api/jobs`)**:
+   - `GET /api/jobs` (Admin/Dispatcher) with status filtering and pagination.
+   - `GET /api/jobs/{id}` (Admin/Dispatcher/assigned Driver).
+   - `POST /api/jobs` (Admin/Dispatcher) creates new delivery jobs.
+   - `PATCH /api/jobs/{id}/assign` assigns driver (validates driver is not Offline).
+   - `PATCH /api/jobs/{id}/status` server-enforced state machine (`Pending -> Assigned -> InTransit -> Delivered/Failed`) with 409 Conflict guards, optimistic concurrency (`xmin`), and automatic `StatusHistory` recording.
+3. **Driver Endpoints (`/api/drivers`)**:
+   - `GET /api/drivers` (Admin/Dispatcher) lists all drivers and active statuses.
+   - `GET /api/drivers/me/jobs` (Driver) returns active assigned jobs.
