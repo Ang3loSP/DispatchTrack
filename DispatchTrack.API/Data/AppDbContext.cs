@@ -1,6 +1,5 @@
-﻿using DispatchTrack.Api.Models;
+using DispatchTrack.Api.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 
 namespace DispatchTrack.Api.Data;
 
@@ -30,6 +29,13 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(j => j.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Job>()
+            .Property(j => j.Version)
+            .HasColumnName("xmin")
+            .HasColumnType("xid")
+            .IsRowVersion()
+            .ValueGeneratedOnAddOrUpdate();
 
         modelBuilder.Entity<Job>()
             .HasOne(j => j.AssignedDriver)

@@ -1,4 +1,3 @@
-﻿using System.ComponentModel.DataAnnotations;
 
 namespace DispatchTrack.Api.Models;
 
@@ -24,8 +23,9 @@ public class Job
     public int? AssignedDriverId { get; set; }
     public Driver? AssignedDriver { get; set; }
 
-    [Timestamp]
-    public byte[]? RowVersion { get; set; }
+    // Mapped to PostgreSQL's built-in xmin system column — auto-updated by Postgres on every row write.
+    // Used by EF Core as an optimistic concurrency token (no migration column needed).
+    public uint Version { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
