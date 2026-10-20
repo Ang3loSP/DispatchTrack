@@ -92,7 +92,7 @@ Also: PRs + branch protection requiring green CI, Dependabot, CodeQL. Migrations
 | 3. Redis cache (with fallback) + Serilog + /health | 6 |
 | 4. xUnit integration tests | 6 |
 | 5. Seed data, demo reset, rate limiting | 3 |
-| 6. React: auth, protected routes, dashboard, driver view, loading/empty/error states (TanStack Query, React Hook Form + Zod, mobile-friendly driver view) | 16 |
+| 6. React: auth, protected routes, dashboard, driver view, loading/empty/error states (TanStack Query, React Hook Form + Zod, mobile-friendly driver view) — visual direction per [docs/DESIGN.md](docs/DESIGN.md) | 16 |
 | 7. Dockerfiles, single-container build, compose | 5 |
 | 8. CI pipeline | 6 |
 | 9. Playwright E2E | 5 |
