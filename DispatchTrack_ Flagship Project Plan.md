@@ -72,7 +72,7 @@ Pending -> Assigned; Assigned -> InTransit or Pending (unassign); InTransit -> D
 
 - **xUnit + WebApplicationFactory:** 401 without token; Dispatcher creates job (201), Driver cannot (403); Pending -> InTransit rejected (409); Assigned -> InTransit accepted with history row; refresh-token rotation; concurrency conflict.
 - **Playwright (one happy path):** admin logs in, creates job, assigns driver, logs out; driver marks InTransit then Delivered; admin dashboard shows the delivered count.
-- CI needs `npx playwright install --with-deps`, and E2E waits for SQL Server readiness before migrations run.
+- CI needs `npx playwright install --with-deps`, and E2E waits for Postgres readiness (docker compose `postgres:16-alpine`, or a Neon branch) before migrations run.
 
 ## 8. CI/CD (GitHub Actions)
 

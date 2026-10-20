@@ -63,3 +63,25 @@ Accept: application/json
 GET {{DispatchTrack.API_HostAddress}}/api/drivers/me/jobs
 Authorization: Bearer {{token}}
 Accept: application/json
+
+### Dashboard summary (Admin/Dispatcher; 60s Redis/in-memory cached)
+GET {{DispatchTrack.API_HostAddress}}/api/dashboard/summary
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Create a Dispatcher or Driver account (Admin only)
+POST {{DispatchTrack.API_HostAddress}}/api/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "new.dispatcher@dispatchtrack.local",
+  "password": "Password123!",
+  "fullName": "New Dispatcher",
+  "role": "Dispatcher",
+  "vehicleReg": "DT-VAN-02"
+}
+
+### Reset demo data (Admin only; wipes everything and reseeds)
+POST {{DispatchTrack.API_HostAddress}}/api/demo/reset
+Authorization: Bearer {{token}}
