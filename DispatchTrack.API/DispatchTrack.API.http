@@ -1,6 +1,65 @@
 @DispatchTrack.API_HostAddress = http://localhost:5084
 
-GET {{DispatchTrack.API_HostAddress}}/weatherforecast/
+### Health check
+GET {{DispatchTrack.API_HostAddress}}/health
 Accept: application/json
 
-###
+### Login (returns Bearer token + refresh cookie)
+POST {{DispatchTrack.API_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "dispatcher@dispatchtrack.local",
+  "password": "Password123!"
+}
+
+### List jobs (paste a token from the login response below)
+@token = PASTE_ACCESS_TOKEN_HERE
+
+GET {{DispatchTrack.API_HostAddress}}/api/jobs?page=1&pageSize=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Create job
+POST {{DispatchTrack.API_HostAddress}}/api/jobs
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "pickupAddress": "10 Industrial Ring, Zone 1",
+  "pickupLat": -33.9249,
+  "pickupLng": 18.4241,
+  "dropoffAddress": "45 Harbour View Rd, Waterfront",
+  "dropoffLat": -33.9015,
+  "dropoffLng": 18.4190,
+  "priority": "Normal",
+  "notes": "Fragile electronics. Handle with care."
+}
+
+### Assign job to a driver (Dispatcher/Admin only)
+PATCH {{DispatchTrack.API_HostAddress}}/api/jobs/1/assign
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "driverId": 1
+}
+
+### Advance job status (state machine enforced; 409 on illegal transition)
+PATCH {{DispatchTrack.API_HostAddress}}/api/jobs/1/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "InTransit"
+}
+
+### List drivers
+GET {{DispatchTrack.API_HostAddress}}/api/drivers
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### My jobs (driver token required)
+GET {{DispatchTrack.API_HostAddress}}/api/drivers/me/jobs
+Authorization: Bearer {{token}}
+Accept: application/json

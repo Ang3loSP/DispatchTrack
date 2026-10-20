@@ -154,16 +154,20 @@ About 20 weeks at 4 hrs/week (16 at 5, 27 at 3). Add 1-2 buffer weeks around AIE
 
 ---
 
-### 📋 Next Session Agenda (Phase 2: Core Domain Endpoints)
+### 📋 Next Session Agenda (Phase 2: Core Domain Endpoints) — Completed
 
-1. **User Management (`/api/users`)**:
-   - `POST /api/users` (Admin only) to provision Dispatcher and Driver accounts.
-2. **Job Lifecycle & State Machine (`/api/jobs`)**:
-   - `GET /api/jobs` (Admin/Dispatcher) with status filtering and pagination.
-   - `GET /api/jobs/{id}` (Admin/Dispatcher/assigned Driver).
-   - `POST /api/jobs` (Admin/Dispatcher) creates new delivery jobs.
-   - `PATCH /api/jobs/{id}/assign` assigns driver (validates driver is not Offline).
-   - `PATCH /api/jobs/{id}/status` server-enforced state machine (`Pending -> Assigned -> InTransit -> Delivered/Failed`) with 409 Conflict guards, optimistic concurrency (`xmin`), and automatic `StatusHistory` recording.
-3. **Driver Endpoints (`/api/drivers`)**:
-   - `GET /api/drivers` (Admin/Dispatcher) lists all drivers and active statuses.
-   - `GET /api/drivers/me/jobs` (Driver) returns active assigned jobs.
+1. **User Management (`/api/users`)**: [x] Completed
+   - [x] `POST /api/users` (Admin only) to provision Dispatcher and Driver accounts.
+   - [x] `GET /api/users/{id}` (Admin) so creation returns a Location header.
+2. **Job Lifecycle & State Machine (`/api/jobs`)**: [x] Completed
+   - [x] `GET /api/jobs` (Admin/Dispatcher) with status filtering and pagination.
+   - [x] `GET /api/jobs/{id}` (Admin/Dispatcher/assigned Driver).
+   - [x] `POST /api/jobs` (Admin/Dispatcher) creates new delivery jobs.
+   - [x] `PATCH /api/jobs/{id}/assign` assigns driver (validates driver is not Offline).
+   - [x] `PATCH /api/jobs/{id}/status` server-enforced state machine (`Pending -> Assigned -> InTransit -> Delivered/Failed`) with 409 Conflict guards, optimistic concurrency (`xmin`), and automatic `StatusHistory` recording.
+   - Note: assignment itself performs `Pending -> Assigned`; the status endpoint rejects a direct `-> Assigned` with 409.
+3. **Driver Endpoints (`/api/drivers`)**: [x] Completed
+   - [x] `GET /api/drivers` (Admin/Dispatcher) lists all drivers and active statuses.
+   - [x] `GET /api/drivers/me/jobs` (Driver) returns active assigned jobs.
+
+Delivered with 43 passing tests (12 state-machine unit tests + integration coverage per §7). Unassign = `PATCH .../status {"status":"Pending"}`, which also frees the driver. Delivered/Failed free the assigned driver.

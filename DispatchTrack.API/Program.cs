@@ -19,8 +19,11 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 // Authentication & JWT configuration
-var jwtSecret = builder.Configuration["Jwt:Secret"] 
-    ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)
+{
+    throw new InvalidOperationException("Jwt:Secret must be configured with at least 32 characters.");
+}
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "DispatchTrack";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "DispatchTrack";
 
@@ -58,7 +61,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    // Enums (JobStatus, JobPriority, UserRole) serialize as strings for readable API/Swagger payloads.
+    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+});
 
 // Swagger configuration with JWT support
 builder.Services.AddEndpointsApiExplorer();
