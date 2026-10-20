@@ -184,3 +184,15 @@ Delivered with 43 passing tests (12 state-machine unit tests + integration cover
 - [x] 47 tests passing (4 dashboard integration tests added).
 
 Next up per timeline: **Phase 5** (demo reset endpoint, rate limiting, migrations-at-startup env flag) or jump to **Phase 6** (React frontend).
+
+---
+
+### 📋 Session Log (Phase 5: demo reset, rate limiting, migrate-on-startup) — Completed
+
+- [x] `POST /api/demo/reset` (Admin): transactional wipe of all tables (FK-safe order via `ExecuteDeleteAsync`) + reseed — doubles as the cleanup path for tests/demo sessions.
+- [x] Rate limiting on `login`/`refresh` per §5: `"auth"` fixed-window policy (10/min per IP, 429), enforced **outside Development only** so dev/test are unaffected.
+- [x] `MigrateOnStartup` env flag (§8): migrations applied at startup only when enabled (Render sets `true`); documented in `.env.example`.
+- [x] Test parallelization disabled assembly-wide — demo reset deletes all rows in the shared Neon DB, so classes must not race it (revisit with Testcontainers at Phase 8).
+- [x] 50 tests passing, including a rate-limit test that boots a Production-environment host and asserts 429 after the 10th login attempt.
+
+Next up per timeline: **Phase 6** (React frontend, 16 hrs — the big one).

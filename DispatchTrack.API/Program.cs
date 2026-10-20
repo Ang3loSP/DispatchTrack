@@ -1,9 +1,11 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using DispatchTrack.Api.Data;
 using DispatchTrack.Api.Models;
 using DispatchTrack.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -72,6 +74,20 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// Rate limiting (plan §5): only enforced outside Development (see middleware below),
+// so local dev and the test suite are unaffected.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("auth", limiter =>
+    {
+        limiter.PermitLimit = 10;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueLimit = 0;
+        limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+});
+
 // CORS for local development (Vite frontend on 5173)
 builder.Services.AddCors(options =>
 {
@@ -121,6 +137,13 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Migrations apply at startup only when explicitly enabled (plan §8: env flag, e.g. on Render).
+    if (bool.TryParse(app.Configuration["MigrateOnStartup"], out var migrateOnStartup) && migrateOnStartup)
+    {
+        await context.Database.MigrateAsync();
+    }
+
     var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
     await DataSeeder.SeedAsync(context, hasher);
 }
@@ -138,6 +161,12 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("DevCors");
+
+// Plan §5: rate limiting on auth endpoints in production only.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseRateLimiter();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
