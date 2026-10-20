@@ -7,12 +7,35 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Structured logging (plan §3): Render captures stdout; never log secrets.
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+builder.Host.UseSerilog();
 
 // Database configuration
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+// Dashboard cache (plan §3): Redis when configured, in-memory otherwise.
+// Either way the cache is non-critical — the dashboard falls back to the DB on failure.
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+if (string.IsNullOrWhiteSpace(redisConnectionString))
+{
+    builder.Services.AddDistributedMemoryCache();
+}
+else
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = "dispatchtrack:";
+    });
+}
 
 // Core services
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -124,5 +147,13 @@ app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = Dat
 
 app.MapControllers();
 
-app.Run();
+try
+{
+    Log.Information("DispatchTrack API starting up");
+    app.Run();
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 

@@ -171,3 +171,16 @@ About 20 weeks at 4 hrs/week (16 at 5, 27 at 3). Add 1-2 buffer weeks around AIE
    - [x] `GET /api/drivers/me/jobs` (Driver) returns active assigned jobs.
 
 Delivered with 43 passing tests (12 state-machine unit tests + integration coverage per §7). Unassign = `PATCH .../status {"status":"Pending"}`, which also frees the driver. Delivered/Failed free the assigned driver.
+
+---
+
+### 📋 Session Log (Phase 3: Redis cache + Serilog + dashboard) — Completed
+
+- [x] `GET /api/dashboard/summary` (Admin/Dispatcher): total/per-status job counts, driver counts, jobs created today; stable 0-filled status keys.
+- [x] Dashboard cache via `IDistributedCache`: Redis when `ConnectionStrings__Redis` is set (Upstash-ready, TLS in URL), in-memory otherwise (local dev).
+- [x] Cache is non-critical per §3: reads/writes wrapped, any Redis failure logs a warning and falls back to the DB — `/health` still has no dependency calls.
+- [x] Serilog structured logging (`UseSerilog`, console sink for Render logs, config in `appsettings.json`).
+- [x] `.env.example` gained `ConnectionStrings__Redis` (empty = cache off).
+- [x] 47 tests passing (4 dashboard integration tests added).
+
+Next up per timeline: **Phase 5** (demo reset endpoint, rate limiting, migrations-at-startup env flag) or jump to **Phase 6** (React frontend).
