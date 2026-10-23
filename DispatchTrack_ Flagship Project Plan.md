@@ -196,3 +196,49 @@ Next up per timeline: **Phase 5** (demo reset endpoint, rate limiting, migration
 - [x] 50 tests passing, including a rate-limit test that boots a Production-environment host and asserts 429 after the 10th login attempt.
 
 Next up per timeline: **Phase 6** (React frontend, 16 hrs — the big one).
+
+---
+
+### 📋 Session Log (Phase 6: React Frontend Implementation) — Completed
+
+- [x] **Tooling & Setup:** Installed TanStack Query, React Router DOM, Axios, Lucide React, Fontsource Inter, Zod. Configured Vite dev proxy to API (`http://localhost:5084`).
+- [x] **Design Tokens & Primitives:** CSS variable design tokens for light/dark themes per [docs/DESIGN.md](docs/DESIGN.md). Built hand-rolled UI primitives (`Button`, `Input`, `Card`, `StatusBadge`, `Drawer`, `Modal`, `Skeleton`, `EmptyState`) with signature tinted status badges (6px dot).
+- [x] **Auth & Session:** In-memory access token storage with Axios 401 response interceptor (rotates via `POST /api/auth/refresh` with `httpOnly` cookies). Created `AuthProvider`, `ThemeProvider` (persisted in `localStorage`), and role-based `ProtectedRoute`.
+- [x] **Views Implemented:**
+  - `LoginPage`: Clean card UI with one-click demo account autofill buttons (Admin, Dispatcher, Driver).
+  - `DashboardPage`: 4 stat tiles from `/api/dashboard/summary`, active jobs feed, unassigned queue, and fleet status panel.
+  - `JobsPage`: Filterable and paginated jobs table, new job creation modal with coordinates, and a slide-over detail drawer with driver assignment modal.
+  - `DriverViewPage`: Mobile-first card interface with thumb-reachable status transitions (`Assigned` -> `InTransit` -> `Delivered`/`Failed`).
+  - `AdminUsersPage`: Internal staff account provisioning (`POST /api/users`) and one-click demo database reset trigger (`POST /api/demo/reset`).
+- [x] **Verification:**
+  - `oxlint`: 0 errors, 0 warnings.
+  - `npm run build`: Bundled cleanly (`dist/`) in < 1s with `verbatimModuleSyntax` compliance.
+  - `dotnet test`: 50/50 backend integration tests passing.
+
+Next up per timeline: **Phase 7** (Docker single-container build & Compose configuration).
+
+---
+
+### 📋 Session Log (Phase 6.1: UI/UX Accessibility & Usability Audit) — Completed
+
+- [x] **Structured audit** against `ui-ux-best-practices` skill (Nielsen Norman heuristics + WCAG 2.1/2.2) across all 5 pages + 8 primitives + Shell.
+- [x] **Critical accessibility fixes:**
+  - Focus trap + `aria-modal="true"` + `role="dialog"` in `Modal` and `Drawer` (Tab/Shift+Tab cycling, focus restoration, Escape handling).
+  - Standardized `focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]` across `Button`, `Input`, `Card`, `Modal`, `Drawer`, filter chips, pagination, clickable rows.
+  - Keyboard-accessible table rows (`tabIndex={0}`, `role="button"`, `onKeyDown` for Enter/Space, `aria-label`) on JobsPage, DashboardPage, AdminUsersPage.
+  - Sticky table headers (`sticky top-0 z-10`) on all data tables.
+  - Touch targets ≥ 48×48dp on DriverViewPage (`Button` `lg` = `h-12`, base `min-h-[44px]`).
+  - Search input proper `<label htmlFor>`, pagination `aria-label`, demo buttons `aria-label`, error banner `role="alert"`.
+  - Shell: all icon-only buttons `aria-label`, mobile menu `aria-expanded`/`aria-controls`, bottom nav active indicator not color-only.
+- [x] **Component state matrix upgrades:**
+  - `Button`: added `:active:scale-[0.98]` tactile feedback, `success` variant (emerald), consistent focus rings.
+  - `Input`: added hover state.
+  - `Card`: new `interactive` prop for clickable cards with focus ring.
+- [x] **UX improvements:**
+  - JobsPage: "Clear filters" button, filter chips focus rings, skeleton loaders match table structure.
+  - DashboardPage: "Last updated" timestamp (TanStack Query `dataUpdatedAt`), stat tiles keyboard accessible.
+  - AdminUsersPage: hardcoded colors → CSS variables, `window.confirm()` → styled `Modal`.
+  - Skeleton: variant system (`table-row`, `card`, `stat-tile`, `card`) matching content layout.
+- [x] **Verification:** `oxlint` 0 errors/0 warnings, `npm run build` clean (2.06s), `dotnet test` 50/50 passing.
+
+Next up per timeline: **Phase 7** (Docker single-container build & Compose configuration).

@@ -168,6 +168,9 @@ if (!app.Environment.IsDevelopment())
     app.UseRateLimiter();
 }
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -175,6 +178,7 @@ app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 
 app.MapControllers();
+app.MapFallbackToFile("index.html");
 
 try
 {
