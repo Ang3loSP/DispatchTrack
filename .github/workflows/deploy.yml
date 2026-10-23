@@ -1,0 +1,29 @@
+# DispatchTrack Deploy to Render
+# Triggers on successful CI on main branch only.
+# Calls Render Deploy Hook (configured in Render dashboard).
+# Render auto-deploy is OFF so tests gate every deploy.
+
+name: Deploy to Render
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to Render
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger Render Deploy Hook
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+          echo "✅ Deploy hook triggered"
+
+      - name: Wait for deploy (optional)
+        run: |
+          echo "Render deploy initiated. Check Render dashboard for status."
+          echo "Typical deploy time: 2-4 minutes (includes cold start on free tier)."

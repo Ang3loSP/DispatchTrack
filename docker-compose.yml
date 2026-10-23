@@ -1,0 +1,74 @@
+# DispatchTrack Local Development Stack
+# Usage: docker-compose up --build
+# 
+# Services:
+#   - api: ASP.NET Core API (hot reload via dotnet watch)
+#   - db: PostgreSQL 16 (data persisted in ./postgres-data)
+#   - redis: Redis 7 (optional, for cache testing)
+#
+# Frontend dev server runs separately: `cd frontend && npm run dev`
+# Vite proxies /api to http://localhost:5084 (see frontend/vite.config.ts)
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend-build  # Use build stage for hot reload
+    container_name: dispatchtrack-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Default=Host=db;Database=dispatchtrack;Username=postgres;Password=postgres;Include Error Detail=true
+      - ConnectionStrings__Redis=redis://redis:6379
+      - Jwt__Secret=dev-secret-key-change-in-production-min-32-chars-long
+      - Jwt__Issuer=DispatchTrack
+      - Jwt__Audience=DispatchTrack
+      - MigrateOnStartup=true
+    ports:
+      - "5084:8080"
+    volumes:
+      - ./DispatchTrack.API:/app/DispatchTrack.API
+      - ./DispatchTrack.API.Tests:/app/DispatchTrack.API.Tests
+      - ~/.nuget/packages:/root/.nuget/packages  # Cache NuGet packages
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "dotnet watch --project DispatchTrack.API/DispatchTrack.API.csproj run --urls http://0.0.0.0:8080"
+
+  db:
+    image: postgres:16-alpine
+    container_name: dispatchtrack-db
+    environment:
+      - POSTGRES_DB=dispatchtrack
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dispatchtrack"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: dispatchtrack-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+
+volumes:
+  postgres-data:
+  redis-data:

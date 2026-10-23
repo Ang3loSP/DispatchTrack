@@ -1,0 +1,169 @@
+# DispatchTrack CI Pipeline
+# Runs on every push/PR. Must pass before merge to main.
+# Deploy to Render is a separate workflow triggered on main (see deploy.yml).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  # Pin .NET and Node versions for reproducibility
+  DOTNET_VERSION: '10.0.x'
+  NODE_VERSION: '22.x'
+
+jobs:
+  # =============================================================================
+  # BACKEND: Build, Test, Lint
+  # =============================================================================
+  backend:
+    name: Backend (Build + Test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      # PostgreSQL for integration tests (matches production Neon)
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: dispatchtrack
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d dispatchtrack"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: true
+
+      - name: Restore dependencies
+        run: dotnet restore DispatchTrack.API/DispatchTrack.API.csproj
+
+      - name: Build API
+        run: dotnet build DispatchTrack.API/DispatchTrack.API.csproj --no-restore -c Release
+
+      - name: Run tests (xUnit)
+        run: dotnet test DispatchTrack.API.Tests/DispatchTrack.API.Tests.csproj --no-build -c Release --logger "trx;LogFileName=test-results.trx"
+        env:
+          ConnectionStrings__Default: Host=localhost;Database=dispatchtrack;Username=postgres;Password=postgres;Include Error Detail=true
+          Jwt__Secret: ci-test-secret-key-at-least-32-characters-long-for-testing
+          Jwt__Issuer: DispatchTrack
+          Jwt__Audience: DispatchTrack
+          MigrateOnStartup: "true"
+          ASPNETCORE_ENVIRONMENT: Development
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: DispatchTrack.API.Tests/TestResults/*.trx
+
+  # =============================================================================
+  # FRONTEND: Typecheck, Lint, Build
+  # =============================================================================
+  frontend:
+    name: Frontend (Typecheck + Lint + Build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Typecheck (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      - name: Lint (oxlint)
+        run: npm run lint
+
+      - name: Build (Vite)
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 1
+
+  # =============================================================================
+  # DOCKER: Build image (validates Dockerfile)
+  # =============================================================================
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [backend, frontend]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: dispatchtrack:ci
+          target: runtime
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # =============================================================================
+  # SECURITY: CodeQL + Dependabot (auto-enabled via repo settings)
+  # =============================================================================
+  # CodeQL runs automatically on push/PR if enabled in repo Security tab
+  # Dependabot alerts auto-generated from GitHub Advisory Database
+
+  # =============================================================================
+  # GATE: All checks must pass before merge
+  # =============================================================================
+  check-gate:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, docker]
+    if: always()
+    steps:
+      - name: Verify all jobs succeeded
+        run: |
+          if [ "${{ needs.backend.result }}" != "success" ] || \
+             [ "${{ needs.frontend.result }}" != "success" ] || \
+             [ "${{ needs.docker.result }}" != "success" ]; then
+            echo "::error::One or more required checks failed"
+            exit 1
+          fi
+          echo "✅ All CI checks passed"

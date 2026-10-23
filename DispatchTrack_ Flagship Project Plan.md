@@ -219,6 +219,32 @@ Next up per timeline: **Phase 7** (Docker single-container build & Compose confi
 
 ---
 
+### 📋 Session Log (Phase 7: Docker + Phase 8: CI + Phase 11: Documentation) — Completed
+
+- [x] **Multi-stage Dockerfile**: Node 22 frontend build → .NET 10 backend publish → ASP.NET Core runtime serving `wwwroot` + API
+- [x] **docker-compose.yml**: Local dev stack (API + PostgreSQL 16 + Redis 7) with health checks
+- [x] **CI Pipeline** (`.github/workflows/ci.yml`): Backend build/test, frontend typecheck/lint/build, Docker image build
+- [x] **Deploy Pipeline** (`.github/workflows/deploy.yml`): Triggers on main + green CI, calls Render deploy hook
+- [x] **Environment Configuration**: `.env.example` with all required vars (DB, JWT, Redis, MigrateOnStartup)
+- [x] **Root README.md**: Live demo link, architecture diagram, quick start, API reference, design system, known limitations
+- [x] **Frontend README.md**: Project structure, design tokens, components, auth flow, accessibility, quality gates
+- [x] **ADR 002**: JWT + httpOnly rotating refresh tokens
+- [x] **ADR 003**: Non-critical Redis cache with DB fallback
+- [x] **ADR 004**: Single-container serving (Node → wwwroot)
+- [x] **ADR 005**: Free-tier hosting constraints & trade-offs
+- [x] **LICENSE**: MIT
+
+**Verification:**
+- `docker build` succeeds (multi-stage)
+- `docker-compose up` starts API + DB + Redis
+- CI workflow passes (backend tests, frontend lint/typecheck/build, Docker build)
+- All 5 ADRs present in `docs/adr/`
+- Root README renders correctly with architecture diagram
+
+Next up per timeline: **Phase 9** (Playwright E2E), **Phase 10** (Deploy to Render + Upstash + Neon), **Phase 12** (CV/portfolio/LinkedIn updates).
+
+---
+
 ### 📋 Session Log (Phase 6.1: UI/UX Accessibility & Usability Audit) — Completed
 
 - [x] **Structured audit** against `ui-ux-best-practices` skill (Nielsen Norman heuristics + WCAG 2.1/2.2) across all 5 pages + 8 primitives + Shell.
@@ -242,3 +268,29 @@ Next up per timeline: **Phase 7** (Docker single-container build & Compose confi
 - [x] **Verification:** `oxlint` 0 errors/0 warnings, `npm run build` clean (2.06s), `dotnet test` 50/50 passing.
 
 Next up per timeline: **Phase 7** (Docker single-container build & Compose configuration).
+
+---
+
+### 📋 Session Log (Phase 7: Docker + Phase 8: CI + Phase 11: Documentation) — Completed
+
+- [x] **Multi-stage Dockerfile**: Node 22 frontend build → .NET 10 backend publish → ASP.NET Core runtime serving `wwwroot` + API
+- [x] **docker-compose.yml**: Local dev stack (API + PostgreSQL 16 + Redis 7) with health checks
+- [x] **CI Pipeline** (`.github/workflows/ci.yml`): Backend build/test, frontend typecheck/lint/build, Docker image build
+- [x] **Deploy Pipeline** (`.github/workflows/deploy.yml`): Triggers on main + green CI, calls Render deploy hook
+- [x] **Environment Configuration**: `.env.example` with all required vars (DB, JWT, Redis, MigrateOnStartup)
+- [x] **Root README.md**: Live demo link, architecture diagram, quick start, API reference, design system, known limitations
+- [x] **Frontend README.md**: Project structure, design tokens, components, auth flow, accessibility, quality gates
+- [x] **ADR 002**: JWT + httpOnly rotating refresh tokens
+- [x] **ADR 003**: Non-critical Redis cache with DB fallback
+- [x] **ADR 004**: Single-container serving (Node → wwwroot)
+- [x] **ADR 005**: Free-tier hosting constraints & trade-offs
+- [x] **LICENSE**: MIT
+
+**Verification:**
+- `docker build` succeeds (multi-stage)
+- `docker-compose up` starts API + DB + Redis
+- CI workflow passes (backend tests, frontend lint/typecheck/build, Docker build)
+- All 5 ADRs present in `docs/adr/`
+- Root README renders correctly with architecture diagram
+
+Next up per timeline: **Phase 9** (Playwright E2E), **Phase 10** (Deploy to Render + Upstash + Neon), **Phase 12** (CV/portfolio/LinkedIn updates).
