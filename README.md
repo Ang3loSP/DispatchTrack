@@ -327,7 +327,7 @@ MIT License — see [LICENSE](LICENSE)
 
 **Angelo** — Full-stack .NET / React developer
 
-- Portfolio: [your-portfolio.dev](https://your-portfolio.dev)
+- Portfolio: [My Portfolio](https://angelo-puza-portfolio.vercel.app/)
 - LinkedIn: [linkedin.com/in/your-profile](https://linkedin.com/in/your-profile)
 - GitHub: [github.com/your-username](https://github.com/your-username)
 
