@@ -329,6 +329,6 @@ MIT License — see [LICENSE](LICENSE)
 
 - Portfolio: [My Portfolio](https://angelo-puza-portfolio.vercel.app/)
 - LinkedIn: [linkedin.com/in/your-profile](https://linkedin.com/in/your-profile)
-- GitHub: [github.com/your-username](https://github.com/Ang3loSP)
+- GitHub: [github.com/Ang3loSP](https://github.com/Ang3loSP)
 
 > Built as a flagship portfolio project to demonstrate end-to-end full-stack delivery capability. No employer code, data, or terminology reused — knowledge only.
