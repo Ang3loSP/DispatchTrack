@@ -310,7 +310,7 @@ DispatchTrack/
 | **Database** | PostgreSQL 16 (Neon serverless) |
 | **Cache** | Redis (Upstash TLS) / In-memory fallback |
 | **Auth** | ASP.NET Identity PasswordHasher, JWT, rotating refresh tokens |
-| **Testing** | xUnit, WebApplicationFactory, Playwright (planned) |
+| **Testing** | xUnit, WebApplicationFactory, Playwright (smoke E2E) |
 | **Container** | Docker multi-stage (Node 22 → .NET 10 → ASP.NET 10) |
 | **CI/CD** | GitHub Actions (build, test, docker, deploy) |
 | **Hosting** | Render (container), Neon (PostgreSQL), Upstash (Redis) |
