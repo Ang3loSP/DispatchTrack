@@ -139,7 +139,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                     'flex items-center gap-3 rounded-md px-3 py-2 text-xs font-medium transition-colors',
                     isActive
                       ? 'bg-[var(--color-accent)] text-white'
-                      : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-850 dark:hover:text-zinc-100',
+                      : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
                     isSidebarCollapsed && 'justify-center px-0'
                   )
                 }
@@ -209,7 +209,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                 onClick={() => setShowResetConfirm(true)}
                 isLoading={isResetting}
                 title="Reset demo database back to initial seed data"
-                className="hidden sm:inline-flex text-xs"
+                className="hidden sm:inline-flex text-xs text-[var(--text-main)]"
                 aria-label="Reset demo database"
               >
                 <RotateCcw className="h-3.5 w-3.5 mr-1" />
@@ -220,7 +220,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-hairline)] bg-transparent text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-hairline)] bg-transparent text-[var(--text-main)] hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
               aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}

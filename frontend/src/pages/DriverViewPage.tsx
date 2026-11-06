@@ -160,7 +160,7 @@ export const DriverViewPage: React.FC = () => {
 
                 {/* Special Instructions / Notes */}
                 {job.notes && (
-                  <div className="flex items-start gap-2 text-xs text-[var(--text-muted)] bg-zinc-50 dark:bg-zinc-850/50 p-2.5 rounded-md">
+                  <div className="flex items-start gap-2 text-xs text-[var(--text-muted)] bg-zinc-50 dark:bg-zinc-800/50 p-2.5 rounded-md">
                     <FileText className="h-3.5 w-3.5 shrink-0 mt-0.5 text-zinc-400" />
                     <p className="leading-snug">{job.notes}</p>
                   </div>

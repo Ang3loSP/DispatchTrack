@@ -5,27 +5,27 @@
 @import "@fontsource/inter/700.css";
 
 :root {
-  --bg-page: #fafafa;
+  --bg-page: #f8fafc;
   --bg-surface: #ffffff;
-  --border-hairline: #e5e7eb;
-  --text-main: #111827;
-  --text-muted: #6b7280;
-  --color-accent: #4f46e5;
-  --color-accent-hover: #4338ca;
-  --color-success: #059669;
-  --color-warning: #d97706;
-  --color-danger: #dc2626;
-  --color-info: #0284c7;
+  --border-hairline: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --color-accent: #4338ca;
+  --color-accent-hover: #3730a3;
+  --color-success: #047857;
+  --color-warning: #b45309;
+  --color-danger: #b91c1c;
+  --color-info: #0369a1;
 }
 
 .dark {
-  --bg-page: #0a0a0b;
-  --bg-surface: #111113;
-  --border-hairline: #262629;
-  --text-main: #f4f4f5;
-  --text-muted: #a1a1aa;
+  --bg-page: #0b0f19;
+  --bg-surface: #141a26;
+  --border-hairline: #2a3344;
+  --text-main: #e6eaf2;
+  --text-muted: #9aa4b8;
   --color-accent: #818cf8;
-  --color-accent-hover: #6366f1;
+  --color-accent-hover: #a5b4fc;
   --color-success: #34d399;
   --color-warning: #fbbf24;
   --color-danger: #f87171;

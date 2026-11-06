@@ -193,7 +193,7 @@ export const AdminUsersPage: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-850/60 border-b border-[var(--border-hairline)] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
+              <thead className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-800/60 border-b border-[var(--border-hairline)] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
                 <tr>
                   <th className="px-5 py-3">ID</th>
                   <th className="px-5 py-3">Full Name</th>
@@ -204,7 +204,7 @@ export const AdminUsersPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-[var(--border-hairline)]">
                 {drivers.map((driver) => (
-                  <tr key={driver.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-850/40">
+                  <tr key={driver.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
                     <td className="px-5 py-3.5 font-semibold text-[var(--text-main)] tabular-nums">
                       #{driver.id}
                     </td>

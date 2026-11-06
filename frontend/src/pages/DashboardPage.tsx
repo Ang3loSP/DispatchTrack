@@ -166,7 +166,7 @@ export const DashboardPage: React.FC = () => {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-850/60 border-b border-[var(--border-hairline)] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
+                  <thead className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-800/60 border-b border-[var(--border-hairline)] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
                     <tr>
                       <th className="px-5 py-2.5">ID</th>
                       <th className="px-5 py-2.5">Status</th>
@@ -189,7 +189,7 @@ export const DashboardPage: React.FC = () => {
                         tabIndex={0}
                         role="button"
                         aria-label={`View details for Job #${job.id}`}
-                        className="hover:bg-zinc-50 dark:hover:bg-zinc-850/40 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-inset"
+                        className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-inset"
                       >
                         <td className="px-5 py-3 font-semibold text-[var(--text-main)] tabular-nums">
                           #{job.id}

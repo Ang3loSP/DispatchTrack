@@ -19,7 +19,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       secondary:
         'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-100 border border-[var(--border-hairline)] focus-visible:ring-zinc-400',
       outline:
-        'border border-[var(--border-hairline)] bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-850 text-zinc-800 dark:text-zinc-200 focus-visible:ring-zinc-400',
+        'border border-[var(--border-hairline)] bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[var(--text-main)] dark:text-zinc-200 focus-visible:ring-zinc-400',
       danger:
         'bg-rose-600 hover:bg-rose-700 text-white focus-visible:ring-rose-500',
       success:
