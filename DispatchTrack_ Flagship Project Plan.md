@@ -219,7 +219,11 @@ Next up per timeline: **Phase 7** (Docker single-container build & Compose confi
 
 ---
 
-### 📋 Session Log (Phase 7: Docker + Phase 8: CI + Phase 11: Documentation) — Completed
+### 📋 Session Log (Phase 7: Docker + Phase 8: CI + Phase 11: Documentation) — Partially Complete
+
+- Dockerfile and docker-compose.yml exist, but Docker build has NOT been exercised locally (no Docker Desktop). Phase 7 remains open until `docker compose up --build` succeeds and image is validated.
+- Phase 8 (CI) workflows fixed (quoted `on:` and ports; disabled dotnet cache) — pending green run.
+- Phase 11 documentation complete.
 
 - [x] **Multi-stage Dockerfile**: Node 22 frontend build → .NET 10 backend publish → ASP.NET Core runtime serving `wwwroot` + API
 - [x] **docker-compose.yml**: Local dev stack (API + PostgreSQL 16 + Redis 7) with health checks
@@ -271,7 +275,11 @@ Next up per timeline: **Phase 7** (Docker single-container build & Compose confi
 
 ---
 
-### 📋 Session Log (Phase 7: Docker + Phase 8: CI + Phase 11: Documentation) — Completed
+### 📋 Session Log (Phase 7: Docker + Phase 8: CI + Phase 11: Documentation) — Partially Complete
+
+- Dockerfile and docker-compose.yml exist, but Docker build has NOT been exercised locally (no Docker Desktop). Phase 7 remains open until `docker compose up --build` succeeds and image is validated.
+- Phase 8 (CI) workflows fixed (quoted `on:` and ports; disabled dotnet cache) — pending green run.
+- Phase 11 documentation complete.
 
 - [x] **Multi-stage Dockerfile**: Node 22 frontend build → .NET 10 backend publish → ASP.NET Core runtime serving `wwwroot` + API
 - [x] **docker-compose.yml**: Local dev stack (API + PostgreSQL 16 + Redis 7) with health checks

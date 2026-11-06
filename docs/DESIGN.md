@@ -92,8 +92,8 @@ Consistent everywhere: tables, cards, dashboard tiles, job detail.
 
 ## Components
 
-Hand-rolled primitives on Tailwind, no component library — roughly 10 components:
-Button, Input, Badge, Table, Card, Drawer, Tabs, Toast, EmptyState, Skeleton.
+Hand-rolled primitives on Tailwind, no component library — 8 components:
+Button, Input, Card, StatusBadge, Modal, Drawer, Skeleton, EmptyState.
 
 ## Alternatives considered
 

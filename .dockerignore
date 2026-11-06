@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.vs/
+**/*.user
+**/*.suo
+.git/
+docs/
+*.md
+" filePath">
+C:\Users\angelo\personal-projects\DispatchTrack\.dockerignore
