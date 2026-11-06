@@ -19,6 +19,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Trigger Render Deploy Hook
+        if: ${{ secrets.RENDER_DEPLOY_HOOK != '' }}
         run: |
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
           echo "✅ Deploy hook triggered"
