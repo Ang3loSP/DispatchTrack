@@ -160,8 +160,8 @@ export const DriverViewPage: React.FC = () => {
 
                 {/* Special Instructions / Notes */}
                 {job.notes && (
-                  <div className="flex items-start gap-2 text-xs text-[var(--text-muted)] bg-zinc-50 dark:bg-zinc-800/50 p-2.5 rounded-md">
-                    <FileText className="h-3.5 w-3.5 shrink-0 mt-0.5 text-zinc-400" />
+                  <div className="flex items-start gap-2 text-xs text-[var(--text-muted)] bg-[var(--bg-page)] p-2.5 rounded-md border border-[var(--border-hairline)]">
+                    <FileText className="h-3.5 w-3.5 shrink-0 mt-0.5 text-[var(--text-muted)]" />
                     <p className="leading-snug">{job.notes}</p>
                   </div>
                 )}
@@ -233,7 +233,7 @@ export const DriverViewPage: React.FC = () => {
                     {job.dropoffAddress}
                   </p>
                 </div>
-                <span className="text-[10px] text-zinc-400 tabular-nums">
+                <span className="text-[10px] text-[var(--text-muted)] tabular-nums">
                   {new Date(job.updatedAt).toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit',

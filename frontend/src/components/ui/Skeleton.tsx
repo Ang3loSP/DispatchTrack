@@ -10,7 +10,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   variant = 'default',
   ...props
 }) => {
-  const baseStyles = 'animate-pulse rounded bg-zinc-200 dark:bg-zinc-800/80';
+  const baseStyles = 'animate-pulse rounded bg-[var(--border-hairline)]';
 
   const variants = {
     default: '',

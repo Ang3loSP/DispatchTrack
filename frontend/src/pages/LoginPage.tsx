@@ -65,7 +65,7 @@ export const LoginPage: React.FC = () => {
       <div className="fixed top-4 right-4">
         <button
           onClick={toggleTheme}
-          className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+          className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-[var(--text-muted)] hover:bg-[var(--border-hairline)] hover:text-[var(--text-main)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
           aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
         >
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -132,7 +132,7 @@ export const LoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleQuickLogin('admin@dispatchtrack.local')}
-                className="rounded border border-[var(--border-hairline)] bg-zinc-50 px-2 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-100 hover:border-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+                className="rounded border border-[var(--border-hairline)] bg-[var(--bg-page)] px-2 py-1.5 text-[11px] font-medium text-[var(--text-main)] hover:bg-[var(--border-hairline)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
                 aria-label="Fill login credentials for Admin account"
               >
                 Admin
@@ -140,7 +140,7 @@ export const LoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleQuickLogin('dispatcher@dispatchtrack.local')}
-                className="rounded border border-[var(--border-hairline)] bg-zinc-50 px-2 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-100 hover:border-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+                className="rounded border border-[var(--border-hairline)] bg-[var(--bg-page)] px-2 py-1.5 text-[11px] font-medium text-[var(--text-main)] hover:bg-[var(--border-hairline)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
                 aria-label="Fill login credentials for Dispatcher account"
               >
                 Dispatcher
@@ -148,7 +148,7 @@ export const LoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleQuickLogin('driver@dispatchtrack.local')}
-                className="rounded border border-[var(--border-hairline)] bg-zinc-50 px-2 py-1.5 text-[11px] font-medium text-zinc-700 hover:bg-zinc-100 hover:border-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+                className="rounded border border-[var(--border-hairline)] bg-[var(--bg-page)] px-2 py-1.5 text-[11px] font-medium text-[var(--text-main)] hover:bg-[var(--border-hairline)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
                 aria-label="Fill login credentials for Driver account"
               >
                 Driver
@@ -158,7 +158,7 @@ export const LoginPage: React.FC = () => {
         </Card>
 
         {/* Footer info */}
-        <p className="text-center text-[11px] text-zinc-400 dark:text-zinc-500">
+        <p className="text-center text-[11px] text-[var(--text-muted)]">
           Single-container architecture • ASP.NET Core & PostgreSQL
         </p>
       </div>

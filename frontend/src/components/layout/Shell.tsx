@@ -118,7 +118,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
           )}
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="hidden md:inline-flex rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+            className="hidden md:inline-flex rounded p-1 text-[var(--text-muted)] hover:bg-[var(--border-hairline)] hover:text-[var(--text-main)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
             title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
@@ -139,7 +139,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                     'flex items-center gap-3 rounded-md px-3 py-2 text-xs font-medium transition-colors',
                     isActive
                       ? 'bg-[var(--color-accent)] text-white'
-                      : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
+                      : 'text-[var(--text-muted)] hover:bg-[var(--border-hairline)] hover:text-[var(--text-main)]',
                     isSidebarCollapsed && 'justify-center px-0'
                   )
                 }
@@ -160,7 +160,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
               isSidebarCollapsed && 'justify-center px-0'
             )}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-800 text-xs font-semibold shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--border-hairline)] text-xs font-semibold shrink-0 text-[var(--text-muted)]">
               {user?.fullName.charAt(0) || 'U'}
             </div>
             {!isSidebarCollapsed && (
@@ -189,13 +189,13 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
         {/* Sticky Topbar */}
         <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[var(--border-hairline)] bg-[var(--bg-surface)]/85 px-4 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden rounded p-1 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
-              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={isMobileMenuOpen}
-              aria-controls="mobile-menu"
-            >
+<button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden rounded p-1 text-[var(--text-muted)] hover:bg-[var(--border-hairline)] hover:text-[var(--text-main)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-menu"
+          >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
             <h1 className="text-sm font-semibold tracking-tight">{getPageTitle()}</h1>
@@ -220,7 +220,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-hairline)] bg-transparent text-[var(--text-main)] hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+              className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-hairline)] bg-transparent text-[var(--text-main)] hover:bg-[var(--border-hairline)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
               aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -248,7 +248,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                       'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
                       isActive
                         ? 'bg-[var(--color-accent)] text-white'
-                        : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400'
+                        : 'text-[var(--text-muted)] hover:bg-[var(--border-hairline)] hover:text-[var(--text-main)]'
                     )
                   }
                 >
@@ -260,7 +260,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
             {user?.role === 'Admin' && (
               <button
                 onClick={() => setShowResetConfirm(true)}
-                className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+                className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-[var(--text-muted)] hover:bg-[var(--border-hairline)] hover:text-[var(--text-main)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
               >
                 <RotateCcw className="h-4 w-4" />
                 <span>Reset Demo Data</span>
@@ -292,7 +292,7 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
                     'flex flex-col items-center justify-center py-1 px-3 text-[10px] font-medium transition-colors',
                     isActive
                       ? 'text-[var(--color-accent)] font-semibold border-t-2 border-[var(--color-accent)]'
-                      : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                   )
                 }
               >

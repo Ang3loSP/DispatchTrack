@@ -26,11 +26,10 @@ This is a dense data tool, not a marketing page.
 
 ## Direction
 
-**One-line aesthetic:** Linear/Stripe-grade restraint — near-monochrome, one signal color,
-hairline borders, dense-but-breathable tables. Reads like software people pay for.
+**One-line aesthetic:** Ice Blue / Midnight Ink inversion — high-contrast, near-monochrome with Vermilion signal color, hairline borders, dense-but-breathable tables. Reads like software people pay for.
 
 Separation is done with 1px hairline borders, not shadows or translucency. The accent
-color appears only on primary actions, links, focus rings, and status tints.
+color (Vermilion) appears only on primary actions, links, focus rings, and status tints.
 
 ## Color tokens
 
@@ -39,12 +38,12 @@ Single source of truth, consumed by Tailwind via CSS variables. The toggle swaps
 
 | Token        | Light      | Dark       | Role                             |
 | ------------ | ---------- | ---------- | -------------------------------- |
-| Background   | `#FAFAFA`  | `#0A0A0B`  | page                             |
-| Surface      | `#FFFFFF`  | `#111113`  | cards, tables                    |
-| Border       | `#E5E7EB`  | `#262629`  | 1px hairlines (primary separator) |
-| Text         | `#111827`  | `#F4F4F5`  | primary                          |
-| Text muted   | `#6B7280`  | `#A1A1AA`  | labels, timestamps               |
-| Accent       | `#4F46E5`  | `#818CF8`  | primary actions, links, focus    |
+| Background   | `#D6EAF8`  | `#0A0E17`  | page (Ice Blue / Midnight Ink)   |
+| Surface      | `#FFFFFF`  | `#111318`  | cards, tables                    |
+| Border       | `#B3D4F0`  | `#1E252D`  | 1px hairlines (primary separator) |
+| Text         | `#0A0E17`  | `#D6EAF8`  | primary (Midnight Ink / Ice Blue) |
+| Text muted   | `#3D5A7A`  | `#8B9CB3`  | labels, timestamps               |
+| Accent       | `#FF4D00`  | `#FF5A3D`  | primary actions, links, focus    |
 | Success      | `#059669`  | `#34D399`  | Delivered                        |
 | Warning      | `#D97706`  | `#FBBF24`  | InTransit                        |
 | Danger       | `#DC2626`  | `#F87171`  | Failed, destructive actions      |
@@ -112,7 +111,7 @@ Button, Input, Card, StatusBadge, Modal, Drawer, Skeleton, EmptyState.
 
 - All color/type changes route through the token table — no hunting through components.
 - ~1–2 hrs added to Phase 6 for the token layer + primitives, then every page is free.
-- Accent indigo is the safe default; swapping it (e.g. amber for a freight feel) is a
+- Accent Vermilion is the signal color; swapping it (e.g. indigo for a SaaS feel) is a
   one-line token edit at any time.
 - No charts on the dashboard in scope; stat tiles + counts first.
 

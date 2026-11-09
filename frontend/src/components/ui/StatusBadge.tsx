@@ -14,8 +14,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', c
       // Job statuses
       case 'Pending':
         return {
-          container: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800/60 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700',
-          dot: 'bg-zinc-500 dark:bg-zinc-400',
+          container: 'bg-[var(--border-hairline)] text-[var(--text-muted)] border-[var(--border-hairline)]',
+          dot: 'bg-[var(--text-muted)]',
         };
       case 'Assigned':
         return {
@@ -51,8 +51,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', c
         };
       case 'Offline':
         return {
-          container: 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800/40 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800',
-          dot: 'bg-zinc-400',
+          container: 'bg-[var(--border-hairline)] text-[var(--text-muted)] border-[var(--border-hairline)]',
+          dot: 'bg-[var(--text-muted)]',
         };
 
       // Priorities
@@ -68,8 +68,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', c
         };
       default:
         return {
-          container: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800/60 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800',
-          dot: 'bg-zinc-400',
+          container: 'bg-[var(--border-hairline)] text-[var(--text-muted)] border-[var(--border-hairline)]',
+          dot: 'bg-[var(--text-muted)]',
         };
     }
   };

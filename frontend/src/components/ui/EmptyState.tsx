@@ -23,7 +23,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     >
       <p className="text-sm font-medium text-[var(--text-muted)]">{message}</p>
       {description && (
-        <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">{description}</p>
+        <p className="mt-1 text-xs text-[var(--text-muted)]">{description}</p>
       )}
       {action && <div className="mt-4">{action}</div>}
     </div>

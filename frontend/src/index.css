@@ -5,31 +5,31 @@
 @import "@fontsource/inter/700.css";
 
 :root {
-  --bg-page: #f8fafc;
-  --bg-surface: #ffffff;
-  --border-hairline: #e2e8f0;
-  --text-main: #0f172a;
-  --text-muted: #475569;
-  --color-accent: #4338ca;
-  --color-accent-hover: #3730a3;
-  --color-success: #047857;
-  --color-warning: #b45309;
-  --color-danger: #b91c1c;
-  --color-info: #0369a1;
+  --bg-page: #D6EAF8;
+  --bg-surface: #FFFFFF;
+  --border-hairline: #B3D4F0;
+  --text-main: #0A0E17;
+  --text-muted: #3D5A7A;
+  --color-accent: #FF4D00;
+  --color-accent-hover: #E63E00;
+  --color-success: #059669;
+  --color-warning: #D97706;
+  --color-danger: #DC2626;
+  --color-info: #0284C7;
 }
 
 .dark {
-  --bg-page: #0b0f19;
-  --bg-surface: #141a26;
-  --border-hairline: #2a3344;
-  --text-main: #e6eaf2;
-  --text-muted: #9aa4b8;
-  --color-accent: #818cf8;
-  --color-accent-hover: #a5b4fc;
-  --color-success: #34d399;
-  --color-warning: #fbbf24;
-  --color-danger: #f87171;
-  --color-info: #38bdf8;
+  --bg-page: #0A0E17;
+  --bg-surface: #111318;
+  --border-hairline: #1E252D;
+  --text-main: #D6EAF8;
+  --text-muted: #8B9CB3;
+  --color-accent: #FF5A3D;
+  --color-accent-hover: #FF765D;
+  --color-success: #34D399;
+  --color-warning: #FBBF24;
+  --color-danger: #F87171;
+  --color-info: #38BDF8;
 }
 
 body {

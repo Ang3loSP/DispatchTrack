@@ -247,18 +247,31 @@ DispatchTrack/
 **Tokens** (`frontend/src/index.css` — CSS variables):
 ```css
 :root {
-  --bg-page: #FAFAFA;
+  --bg-page: #D6EAF8;          /* Ice Blue */
   --bg-surface: #FFFFFF;
-  --border-hairline: #E5E7EB;
-  --text-main: #111827;
-  --text-muted: #6B7280;
-  --color-accent: #4F46E5;    /* Indigo */
-  --color-success: #059669;   /* Delivered */
-  --color-warning: #D97706;   /* InTransit */
-  --color-danger: #DC2626;    /* Failed */
-  --color-info: #0284C7;      /* Assigned */
+  --border-hairline: #B3D4F0;
+  --text-main: #0A0E17;        /* Midnight Ink */
+  --text-muted: #3D5A7A;
+  --color-accent: #FF4D00;     /* Vermilion */
+  --color-accent-hover: #E63E00;
+  --color-success: #059669;    /* Delivered */
+  --color-warning: #D97706;    /* InTransit */
+  --color-danger: #DC2626;     /* Failed */
+  --color-info: #0284C7;       /* Assigned */
 }
-.dark { /* dark-mode overrides */ }
+.dark {
+  --bg-page: #0A0E17;          /* Midnight Ink */
+  --bg-surface: #111318;
+  --border-hairline: #1E252D;
+  --text-main: #D6EAF8;        /* Ice Blue */
+  --text-muted: #8B9CB3;
+  --color-accent: #FF5A3D;     /* Vermilion (light) */
+  --color-accent-hover: #FF765D;
+  --color-success: #34D399;
+  --color-warning: #FBBF24;
+  --color-danger: #F87171;
+  --color-info: #38BDF8;
+}
 ```
 
 **Status Badge** — signature pattern: tinted bg (~10%) + solid text + 6px dot

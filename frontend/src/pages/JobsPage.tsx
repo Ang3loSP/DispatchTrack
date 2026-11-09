@@ -245,7 +245,7 @@ export const JobsPage: React.FC = () => {
                 className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)] ${
                   statusFilter === s
                     ? 'bg-[var(--color-accent)] text-white'
-                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                    : 'bg-[var(--border-hairline)] text-[var(--text-muted)] hover:bg-[var(--color-accent)] hover:text-white'
                 }`}
               >
                 {s === 'InTransit' ? 'In Transit' : s}
@@ -257,7 +257,7 @@ export const JobsPage: React.FC = () => {
                   handleFilterChange('All');
                   setSearchQuery('');
                 }}
-                className="rounded-full px-2.5 py-1 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+                className="rounded-full px-2.5 py-1 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
               >
                 Clear filters
               </button>
@@ -269,7 +269,7 @@ export const JobsPage: React.FC = () => {
             <label htmlFor="job-search" className="sr-only">
               Search jobs
             </label>
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--text-muted)]" />
             <input
               type="text"
               id="job-search"
@@ -306,7 +306,7 @@ export const JobsPage: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-800/60 border-b border-[var(--border-hairline)] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
+              <thead className="sticky top-0 z-10 bg-[var(--bg-page)] dark:bg-[var(--bg-surface)]/60 border-b border-[var(--border-hairline)] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
                 <tr>
                   <th className="px-5 py-3">ID</th>
                   <th className="px-5 py-3">Status</th>
@@ -331,7 +331,7 @@ export const JobsPage: React.FC = () => {
                     tabIndex={0}
                     role="button"
                     aria-label={`View details for Job #${job.id}`}
-                    className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-inset"
+                    className="hover:bg-[var(--bg-page)] dark:hover:bg-[var(--border-hairline)] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-inset"
                   >
                     <td className="px-5 py-3.5 font-semibold text-[var(--text-main)] tabular-nums">
                       #{job.id}
@@ -359,7 +359,7 @@ export const JobsPage: React.FC = () => {
                           </span>
                         </div>
                       ) : (
-                        <span className="italic text-zinc-400">Unassigned</span>
+                        <span className="italic text-[var(--text-muted)]">Unassigned</span>
                       )}
                     </td>
                     <td className="px-5 py-3.5 text-right text-[var(--text-muted)] tabular-nums">
@@ -449,7 +449,7 @@ export const JobsPage: React.FC = () => {
                 <p className="text-sm font-semibold text-[var(--text-main)] mt-1">
                   {selectedJob.pickupAddress}
                 </p>
-                <p className="text-[10px] text-zinc-400 mt-0.5 tabular-nums">
+                <p className="text-[10px] text-[var(--text-muted)] mt-0.5 tabular-nums">
                   Coordinates: {selectedJob.pickupLat}, {selectedJob.pickupLng}
                 </p>
               </div>
@@ -462,7 +462,7 @@ export const JobsPage: React.FC = () => {
                 <p className="text-sm font-semibold text-[var(--text-main)] mt-1">
                   {selectedJob.dropoffAddress}
                 </p>
-                <p className="text-[10px] text-zinc-400 mt-0.5 tabular-nums">
+                <p className="text-[10px] text-[var(--text-muted)] mt-0.5 tabular-nums">
                   Coordinates: {selectedJob.dropoffLat}, {selectedJob.dropoffLng}
                 </p>
               </div>
@@ -514,7 +514,7 @@ export const JobsPage: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-zinc-400 italic">No driver assigned yet.</p>
+                <p className="text-xs text-[var(--text-muted)] italic">No driver assigned yet.</p>
               )}
             </div>
 
@@ -575,7 +575,7 @@ export const JobsPage: React.FC = () => {
                 );
               })}
             </select>
-            <p className="text-[11px] text-zinc-400 mt-1">
+            <p className="text-[11px] text-[var(--text-muted)] mt-1">
               Note: Offline drivers cannot be assigned per dispatch policy rules.
             </p>
           </div>
@@ -650,7 +650,7 @@ export const JobsPage: React.FC = () => {
               placeholder="Gate code, loading dock number, recipient instructions..."
               value={newNotes}
               onChange={(e) => setNewNotes(e.target.value)}
-              className="w-full rounded-md border border-[var(--border-hairline)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm text-[var(--text-main)] placeholder:text-zinc-400 focus:outline-none focus:border-[var(--color-accent)]"
+              className="w-full rounded-md border border-[var(--border-hairline)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--color-accent)]"
             />
           </div>
 

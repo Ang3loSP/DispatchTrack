@@ -39,7 +39,7 @@ export const DashboardPage: React.FC = () => {
       title: 'Pending Dispatch',
       value: pendingCount,
       icon: Clock,
-      color: 'text-zinc-600 dark:text-zinc-400',
+      color: 'text-[var(--text-muted)]',
       action: () => navigate('/jobs?status=Pending'),
     },
     {
@@ -60,7 +60,7 @@ export const DashboardPage: React.FC = () => {
       title: 'Offline Drivers',
       value: offlineDriversCount,
       icon: UserX,
-      color: 'text-zinc-400',
+      color: 'text-[var(--text-muted)]',
       action: () => navigate('/jobs'),
     },
   ];
@@ -166,7 +166,7 @@ export const DashboardPage: React.FC = () => {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-800/60 border-b border-[var(--border-hairline)] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
+                  <thead className="sticky top-0 z-10 bg-[var(--bg-page)] dark:bg-[var(--bg-surface)]/60 border-b border-[var(--border-hairline)] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
                     <tr>
                       <th className="px-5 py-2.5">ID</th>
                       <th className="px-5 py-2.5">Status</th>
@@ -189,7 +189,7 @@ export const DashboardPage: React.FC = () => {
                         tabIndex={0}
                         role="button"
                         aria-label={`View details for Job #${job.id}`}
-                        className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-inset"
+                        className="hover:bg-[var(--bg-page)] dark:hover:bg-[var(--border-hairline)] cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-inset"
                       >
                         <td className="px-5 py-3 font-semibold text-[var(--text-main)] tabular-nums">
                           #{job.id}
@@ -208,7 +208,7 @@ export const DashboardPage: React.FC = () => {
                               {job.assignedDriver.fullName}
                             </span>
                           ) : (
-                            <span className="italic text-zinc-400">Unassigned</span>
+                            <span className="italic text-[var(--text-muted)]">Unassigned</span>
                           )}
                         </td>
                         <td className="px-5 py-3 text-right text-[var(--text-muted)] tabular-nums">
@@ -259,7 +259,7 @@ export const DashboardPage: React.FC = () => {
                     tabIndex={0}
                     role="button"
                     aria-label={`View details for Job #${job.id}`}
-                    className="p-3 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-page)] hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
+                    className="p-3 rounded-md border border-[var(--border-hairline)] bg-[var(--bg-page)] hover:border-[var(--color-accent)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-semibold text-xs text-[var(--text-main)]">
