@@ -8,6 +8,7 @@ import { StatusBadge } from '../components/ui/StatusBadge';
 import { Skeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Modal } from '../components/ui/Modal';
+import { DriverMap } from '../components/ui/DriverMap';
 import {
   Navigation,
   CheckCircle,
@@ -68,6 +69,29 @@ export const DriverViewPage: React.FC = () => {
   const activeJobs = jobs?.filter((j) => j.status === 'Assigned' || j.status === 'InTransit') || [];
   const completedJobs = jobs?.filter((j) => j.status === 'Delivered' || j.status === 'Failed') || [];
 
+  // Prepare map data from active jobs
+  const mapJobs = activeJobs.flatMap((job) => [
+    {
+      lat: job.pickupLat,
+      lng: job.pickupLng,
+      address: job.pickupAddress,
+      type: 'pickup' as const,
+      jobId: job.id,
+      status: job.status,
+    },
+    {
+      lat: job.dropoffLat,
+      lng: job.dropoffLng,
+      address: job.dropoffAddress,
+      type: 'dropoff' as const,
+      jobId: job.id,
+      status: job.status,
+    },
+  ]);
+
+  // Driver location state (updated via SignalR)
+  const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
+
   // SignalR real-time updates for driver
   useEffect(() => {
     const signalR = getSignalR();
@@ -76,10 +100,14 @@ export const DriverViewPage: React.FC = () => {
     const setupSignalR = async () => {
       // Start driver hub for location/status updates
       await signalR.startDriverHub(
-        // onDriverLocation - not used by driver view
-        undefined,
-        // onDriverStatus - not used by driver view
-        undefined
+        // onDriverLocation
+        (_driverId, lat, lng) => {
+          setDriverLocation({ lat, lng });
+        },
+        // onDriverStatus
+        (_driverId, _status) => {
+          queryClient.invalidateQueries({ queryKey: ['myJobs'] });
+        }
       );
 
       // Join driver group for job assignments
@@ -139,6 +167,16 @@ export const DriverViewPage: React.FC = () => {
           <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
           <span>{transitionError}</span>
         </div>
+      )}
+
+      {/* Route Map */}
+      {activeJobs.length > 0 && (
+        <Card className="p-2">
+          <DriverMap jobs={mapJobs} driverLocation={driverLocation || undefined} className="h-[350px]" />
+          <p className="text-[10px] text-[var(--text-muted)] text-center mt-2">
+            {driverLocation ? '📍 Live location' : '📍 Route overview (live when driving)'}
+          </p>
+        </Card>
       )}
 
       {/* Active Deliveries Queue */}
