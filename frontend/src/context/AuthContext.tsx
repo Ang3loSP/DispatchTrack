@@ -3,6 +3,10 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import type { UserProfile } from '../types';
 import { authApi } from '../api/endpoints';
 import { setAccessToken } from '../api/client';
+import { initSignalR, getSignalR } from '../services/signalr';
+import * as signalR from '@microsoft/signalr';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -25,6 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // Ignore network errors on logout
     } finally {
+      getSignalR()?.stop();
       setAccessToken(null);
       setUser(null);
     }
@@ -35,6 +40,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const auth = await authApi.refresh();
       setAccessToken(auth.accessToken);
       setUser(auth.user);
+
+      // Initialize SignalR if not already connected
+      if (!getSignalR() || getSignalR()!.jobHubState === signalR.HubConnectionState.Disconnected) {
+        initSignalR(API_BASE_URL, () => localStorage.getItem('access_token'));
+      }
     } catch {
       setAccessToken(null);
       setUser(null);
@@ -51,6 +61,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (isMounted) {
           setAccessToken(auth.accessToken);
           setUser(auth.user);
+
+          // Initialize SignalR after successful auth restore
+          initSignalR(API_BASE_URL, () => localStorage.getItem('access_token'));
         }
       })
       .catch(() => {
@@ -66,6 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
     const handleAuthExpired = () => {
+      getSignalR()?.stop();
       setUser(null);
       setAccessToken(null);
     };
@@ -83,6 +97,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await authApi.login(email, pass);
       setAccessToken(response.accessToken);
       setUser(response.user);
+
+      // Initialize SignalR after successful login
+      initSignalR(API_BASE_URL, () => localStorage.getItem('access_token'));
     } finally {
       setIsLoading(false);
     }

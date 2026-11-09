@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { driversApi, jobsApi } from '../api/endpoints';
 import type { Job, JobStatus } from '../types';
@@ -18,6 +18,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import axios from 'axios';
+import { getSignalR } from '../services/signalr';
 
 export const DriverViewPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -66,6 +67,48 @@ export const DriverViewPage: React.FC = () => {
 
   const activeJobs = jobs?.filter((j) => j.status === 'Assigned' || j.status === 'InTransit') || [];
   const completedJobs = jobs?.filter((j) => j.status === 'Delivered' || j.status === 'Failed') || [];
+
+  // SignalR real-time updates for driver
+  useEffect(() => {
+    const signalR = getSignalR();
+    if (!signalR) return;
+
+    const setupSignalR = async () => {
+      // Start driver hub for location/status updates
+      await signalR.startDriverHub(
+        // onDriverLocation - not used by driver view
+        undefined,
+        // onDriverStatus - not used by driver view
+        undefined
+      );
+
+      // Join driver group for job assignments
+      // The driverId would need to be extracted from user context
+      // For now, we rely on JobHub for job updates
+
+      // Also connect to JobHub for job status changes
+      await signalR.startJobHub(
+        // onJobStatusChanged
+        (jobId, status) => {
+          console.log('Driver: Job status changed:', jobId, status);
+          queryClient.invalidateQueries({ queryKey: ['myJobs'] });
+        },
+        // onJobAssigned
+        (_jobId) => {
+          queryClient.invalidateQueries({ queryKey: ['myJobs'] });
+        },
+        // onJobCreated - not relevant for driver
+        undefined,
+        // onCountsChanged - not relevant for driver
+        undefined
+      );
+
+      // Join dispatcher group to receive job assignments
+      await signalR.joinDispatcherGroup();
+    };
+
+    setupSignalR();
+  }, [queryClient]);
 
   return (
     <div className="max-w-xl mx-auto space-y-6">

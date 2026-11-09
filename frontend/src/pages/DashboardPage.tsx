@@ -1,5 +1,5 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { dashboardApi, jobsApi, driversApi } from '../api/endpoints';
 import { Card, CardHeader, CardTitle } from '../components/ui/Card';
@@ -9,14 +9,16 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Clock, Truck, CheckCircle2, UserX, ArrowRight, Plus, MapPin } from 'lucide-react';
 import type { Job } from '../types';
+import { getSignalR } from '../services/signalr';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: summary, isLoading: isLoadingSummary, dataUpdatedAt } = useQuery({
     queryKey: ['dashboardSummary'],
     queryFn: dashboardApi.getSummary,
-    refetchInterval: 10000, // auto poll dashboard metrics every 10s
+    refetchInterval: false, // SignalR will trigger refetch
   });
 
   const { data: recentJobs, isLoading: isLoadingJobs } = useQuery({
@@ -28,6 +30,46 @@ export const DashboardPage: React.FC = () => {
     queryKey: ['drivers'],
     queryFn: driversApi.getDrivers,
   });
+
+  // SignalR real-time updates
+  useEffect(() => {
+    const signalR = getSignalR();
+    if (!signalR) return;
+
+    const setupSignalR = async () => {
+      await signalR.startJobHub(
+        // onJobStatusChanged
+        (jobId, status) => {
+          console.log('Job status changed:', jobId, status);
+          queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+          queryClient.invalidateQueries({ queryKey: ['recentJobs'] });
+        },
+        // onJobAssigned
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+          queryClient.invalidateQueries({ queryKey: ['recentJobs'] });
+        },
+        // onJobCreated
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+          queryClient.invalidateQueries({ queryKey: ['recentJobs'] });
+        },
+        // onCountsChanged
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+        }
+      );
+
+      // Join dispatcher group for all updates
+      await signalR.joinDispatcherGroup();
+    };
+
+    setupSignalR();
+
+    return () => {
+      signalR.leaveDispatcherGroup();
+    };
+  }, [queryClient]);
 
   const pendingCount = summary?.jobsByStatus?.['Pending'] ?? 0;
   const inTransitCount = summary?.jobsByStatus?.['InTransit'] ?? 0;

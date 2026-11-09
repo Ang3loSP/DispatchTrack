@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { jobsApi, driversApi } from '../api/endpoints';
@@ -24,6 +24,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import axios from 'axios';
+import { getSignalR } from '../services/signalr';
 
 const STATUS_FILTERS: (JobStatus | 'All')[] = [
   'All',
@@ -87,6 +88,56 @@ export const JobsPage: React.FC = () => {
     queryKey: ['drivers'],
     queryFn: driversApi.getDrivers,
   });
+
+  // SignalR real-time updates
+  useEffect(() => {
+    const signalR = getSignalR();
+    if (!signalR) return;
+
+    const setupSignalR = async () => {
+      await signalR.startJobHub(
+        // onJobStatusChanged
+        (jobId, status) => {
+          console.log('Job status changed:', jobId, status);
+          queryClient.invalidateQueries({ queryKey: ['jobs'] });
+          queryClient.invalidateQueries({ queryKey: ['jobDetail', jobId] });
+          queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+        },
+        // onJobAssigned
+        (jobId) => {
+          queryClient.invalidateQueries({ queryKey: ['jobs'] });
+          queryClient.invalidateQueries({ queryKey: ['jobDetail', jobId] });
+          queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+        },
+        // onJobCreated
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['jobs'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+        },
+        // onCountsChanged
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+        }
+      );
+
+      // Join dispatcher group for all updates
+      await signalR.joinDispatcherGroup();
+
+      // If a specific job is selected, join its group
+      if (selectedJobId) {
+        await signalR.joinJobGroup(selectedJobId);
+      }
+    };
+
+    setupSignalR();
+
+    return () => {
+      signalR.leaveDispatcherGroup();
+      if (selectedJobId) {
+        signalR.leaveJobGroup(selectedJobId);
+      }
+    };
+  }, [queryClient, selectedJobId]);
 
   // Mutations
   const createJobMutation = useMutation({

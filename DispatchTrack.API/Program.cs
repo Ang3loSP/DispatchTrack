@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using DispatchTrack.Api.Data;
+using DispatchTrack.Api.Hubs;
 using DispatchTrack.Api.Models;
 using DispatchTrack.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -42,6 +43,13 @@ else
 // Core services
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<ISignalRService, SignalRService>();
+
+// SignalR with JWT auth (allow token in query string for WebSocket)
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+});
 
 // Authentication & JWT configuration
 var jwtSecret = builder.Configuration["Jwt:Secret"];
@@ -69,6 +77,22 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtAudience,
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
+    };
+
+    // Allow token in query string for SignalR WebSocket connections
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && 
+                (path.StartsWithSegments("/hubs/jobs") || path.StartsWithSegments("/hubs/drivers")))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -178,6 +202,11 @@ app.UseAuthorization();
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 
 app.MapControllers();
+
+// SignalR Hubs
+app.MapHub<JobHub>(JobHub.HubUrl);
+app.MapHub<DriverHub>(DriverHub.HubUrl);
+
 app.MapFallbackToFile("index.html");
 
 try

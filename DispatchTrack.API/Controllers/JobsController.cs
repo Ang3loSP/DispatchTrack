@@ -1,6 +1,7 @@
 using DispatchTrack.Api.Data;
 using DispatchTrack.Api.DTOs.Jobs;
 using DispatchTrack.Api.Models;
+using DispatchTrack.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +15,12 @@ namespace DispatchTrack.Api.Controllers;
 public class JobsController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ISignalRService _signalR;
 
-    public JobsController(AppDbContext context)
+    public JobsController(AppDbContext context, ISignalRService signalR)
     {
         _context = context;
+        _signalR = signalR;
     }
 
     // GET /api/jobs?status=&page=&pageSize= (plan §4: Admin, Dispatcher)
@@ -103,6 +106,8 @@ public class JobsController : ControllerBase
             return ConcurrencyConflict();
         }
 
+        await _signalR.NotifyJobCreated(job.Id);
+
         return CreatedAtAction(nameof(GetJob), new { id = job.Id }, job.ToDto());
     }
 
@@ -166,6 +171,8 @@ public class JobsController : ControllerBase
         {
             return ConcurrencyConflict();
         }
+
+        await _signalR.NotifyJobAssigned(job.Id, driver.Id, driver.User.FullName);
 
         return Ok(job.ToDto());
     }
@@ -241,6 +248,9 @@ public class JobsController : ControllerBase
         {
             return ConcurrencyConflict();
         }
+
+        var driverName = job.AssignedDriver?.User.FullName;
+        await _signalR.NotifyJobStatusChanged(job.Id, targetStatus.ToString(), driverName);
 
         return Ok(job.ToDto());
     }
