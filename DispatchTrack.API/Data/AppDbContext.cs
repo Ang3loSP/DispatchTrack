@@ -10,6 +10,8 @@ public class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Driver> Drivers => Set<Driver>();
     public DbSet<Job> Jobs => Set<Job>();
+    public DbSet<TripSheet> TripSheets => Set<TripSheet>();
+    public DbSet<TripSheetItem> TripSheetItems => Set<TripSheetItem>();
     public DbSet<StatusHistory> StatusHistories => Set<StatusHistory>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
@@ -47,5 +49,43 @@ public class AppDbContext : DbContext
             .HasOne(sh => sh.Job)
             .WithMany(j => j.StatusHistory)
             .HasForeignKey(sh => sh.JobId);
+
+        // Phase 1: TripSheet configuration
+        modelBuilder.Entity<TripSheet>()
+            .HasIndex(t => t.TripNumber)
+            .IsUnique();
+
+        modelBuilder.Entity<TripSheet>()
+            .HasOne(t => t.Driver)
+            .WithMany()
+            .HasForeignKey(t => t.DriverId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<TripSheet>()
+            .Property(t => t.Version)
+            .IsRowVersion();
+
+        modelBuilder.Entity<TripSheetItem>()
+            .HasOne(i => i.TripSheet)
+            .WithMany(t => t.Items)
+            .HasForeignKey(i => i.TripSheetId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TripSheetItem>()
+            .HasOne(i => i.Job)
+            .WithMany()
+            .HasForeignKey(i => i.JobId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<TripSheetItem>()
+            .Property(i => i.Version)
+            .IsRowVersion();
+
+        // Job -> TripSheet relationship
+        modelBuilder.Entity<Job>()
+            .HasOne(j => j.TripSheet)
+            .WithMany()
+            .HasForeignKey(j => j.TripSheetId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

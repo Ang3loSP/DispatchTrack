@@ -17,7 +17,7 @@ namespace DispatchTrack.API.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -65,6 +65,9 @@ namespace DispatchTrack.API.Migrations
                     b.Property<int>("CreatedByUserId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("DispatchPlan")
+                        .HasColumnType("integer");
+
                     b.Property<string>("DropoffAddress")
                         .IsRequired()
                         .HasColumnType("text");
@@ -94,6 +97,9 @@ namespace DispatchTrack.API.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<long?>("TripSheetId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -108,6 +114,8 @@ namespace DispatchTrack.API.Migrations
                     b.HasIndex("AssignedDriverId");
 
                     b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("TripSheetId");
 
                     b.ToTable("Jobs");
                 });
@@ -175,6 +183,108 @@ namespace DispatchTrack.API.Migrations
                     b.ToTable("StatusHistories");
                 });
 
+            modelBuilder.Entity("DispatchTrack.Api.Models.TripSheet", b =>
+                {
+                    b.Property<long>("TripSheetId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("TripSheetId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DispatchDestinationCategory")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("DriverId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DriverName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("TripEndDateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TripNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("TripStartDateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
+
+                    b.HasKey("TripSheetId");
+
+                    b.HasIndex("DriverId");
+
+                    b.HasIndex("TripNumber")
+                        .IsUnique();
+
+                    b.ToTable("TripSheets");
+                });
+
+            modelBuilder.Entity("DispatchTrack.Api.Models.TripSheetItem", b =>
+                {
+                    b.Property<long>("TripSheetItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("TripSheetItemId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("JobId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("NonCustomerDestinationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("NonTicketCustomerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("NonTicketDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("StopNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("TripSheetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
+
+                    b.HasKey("TripSheetItemId");
+
+                    b.HasIndex("JobId");
+
+                    b.HasIndex("TripSheetId");
+
+                    b.ToTable("TripSheetItems");
+                });
+
             modelBuilder.Entity("DispatchTrack.Api.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -233,9 +343,16 @@ namespace DispatchTrack.API.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("DispatchTrack.Api.Models.TripSheet", "TripSheet")
+                        .WithMany()
+                        .HasForeignKey("TripSheetId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("AssignedDriver");
 
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("TripSheet");
                 });
 
             modelBuilder.Entity("DispatchTrack.Api.Models.RefreshToken", b =>
@@ -268,6 +385,36 @@ namespace DispatchTrack.API.Migrations
                     b.Navigation("Job");
                 });
 
+            modelBuilder.Entity("DispatchTrack.Api.Models.TripSheet", b =>
+                {
+                    b.HasOne("DispatchTrack.Api.Models.Driver", "Driver")
+                        .WithMany()
+                        .HasForeignKey("DriverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Driver");
+                });
+
+            modelBuilder.Entity("DispatchTrack.Api.Models.TripSheetItem", b =>
+                {
+                    b.HasOne("DispatchTrack.Api.Models.Job", "Job")
+                        .WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DispatchTrack.Api.Models.TripSheet", "TripSheet")
+                        .WithMany("Items")
+                        .HasForeignKey("TripSheetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Job");
+
+                    b.Navigation("TripSheet");
+                });
+
             modelBuilder.Entity("DispatchTrack.Api.Models.Driver", b =>
                 {
                     b.Navigation("Jobs");
@@ -276,6 +423,11 @@ namespace DispatchTrack.API.Migrations
             modelBuilder.Entity("DispatchTrack.Api.Models.Job", b =>
                 {
                     b.Navigation("StatusHistory");
+                });
+
+            modelBuilder.Entity("DispatchTrack.Api.Models.TripSheet", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("DispatchTrack.Api.Models.User", b =>
