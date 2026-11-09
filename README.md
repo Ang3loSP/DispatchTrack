@@ -61,7 +61,8 @@ Build **one project that proves** I can design, build, test, containerize, deplo
 - **Optimistic concurrency**: PostgreSQL `xmin` prevents lost updates
 - **Status history**: Every transition recorded with user + timestamp
 - **Driver assignment**: Dispatchers assign jobs; drivers cannot be Offline
-- **Dashboard**: Real-time counts (jobs by status, drivers by status, jobs created today) — Redis cached
+- **Dashboard**: Real-time counts via SignalR (jobs by status, drivers by status, jobs created today) — Redis cached
+- **Real-time updates**: SignalR (WebSocket) — live job status, assignments, dashboard counts, driver location
 - **Demo reset**: `POST /api/demo/reset` wipes & reseeds database (Admin only)
 - **Rate limiting**: 10 req/min on login/refresh (production only)
 
@@ -73,6 +74,7 @@ Build **one project that proves** I can design, build, test, containerize, deplo
 - **Mobile-first Driver view**: Thumb-reachable action buttons, bottom tab navigation
 - **TanStack Query**: Server state, auto-refetch, optimistic updates
 - **Axios interceptor**: Silent token refresh on 401
+- **SignalR client**: Auto-reconnect, group-based subscriptions, JWT auth
 
 ---
 
@@ -147,8 +149,9 @@ DispatchTrack/
 │       └── ADR-005-free-tier-hosting.md
 ├── DispatchTrack.API/          # ASP.NET Core Web API
 │   ├── Controllers/            # Auth, Jobs, Drivers, Dashboard, Demo, Users
+│   ├── Hubs/                   # SignalR: JobHub, DriverHub
 │   ├── Models/                 # Domain entities (User, Driver, Job, StatusHistory, RefreshToken)
-│   ├── Services/               # TokenService (JWT + refresh)
+│   ├── Services/               # TokenService (JWT + refresh), SignalRService
 │   ├── Data/                   # AppDbContext, DataSeeder
 │   └── DTOs/                   # Request/Response contracts
 ├── DispatchTrack.API.Tests/    # xUnit integration tests (50 passing)
@@ -160,6 +163,7 @@ DispatchTrack/
 │   │   │   ├── auth/           # ProtectedRoute
 │   │   │   └── layout/         # Shell (sidebar, topbar, bottom nav)
 │   │   ├── context/            # AuthContext, ThemeContext
+│   │   ├── services/           # SignalR client (signalr.ts)
 │   │   ├── api/                # Axios client + endpoints
 │   │   └── types/              # Shared TypeScript interfaces
 │   └── dist/                   # Production build output (copied to wwwroot)
@@ -317,12 +321,13 @@ DispatchTrack/
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | React 19, TypeScript 6, Vite 8, TanStack Query 5, React Router 7 |
+| **Frontend** | React 19, TypeScript 6, Vite 8, TanStack Query 5, React Router 7, @microsoft/signalr |
 | **Styling** | Tailwind CSS 4 (CSS variables), Fontsource Inter, Lucide React |
-| **Backend** | ASP.NET Core 10, EF Core 10, Npgsql, JWT Bearer, Serilog |
+| **Backend** | ASP.NET Core 10, EF Core 10, Npgsql, JWT Bearer, Serilog, SignalR |
 | **Database** | PostgreSQL 16 (Neon serverless) |
 | **Cache** | Redis (Upstash TLS) / In-memory fallback |
 | **Auth** | ASP.NET Identity PasswordHasher, JWT, rotating refresh tokens |
+| **Real-time** | SignalR (WebSocket) — JobHub, DriverHub, JWT auth |
 | **Testing** | xUnit, WebApplicationFactory, Playwright (smoke E2E) |
 | **Container** | Docker multi-stage (Node 22 → .NET 10 → ASP.NET 10) |
 | **CI/CD** | GitHub Actions (build, test, docker, deploy) |
