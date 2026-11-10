@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Skeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Search, GripVertical, Truck, ArrowRight, X, Download } from 'lucide-react';
+import { Search, GripVertical, Truck, ArrowRight, X, Download, Plus } from 'lucide-react';
 import { getSignalR } from '../services/signalr';
 import { cn } from '../utils/cn';
 
@@ -50,7 +50,6 @@ export const DispatchBoardPage: React.FC = () => {
         (tripSheet) => {
           console.log('TripSheet created:', tripSheet);
           queryClient.invalidateQueries({ queryKey: ['tripSheets', 'open'] });
-          queryClient.invalidateQueries({ queryKey: ['jobs', 'dispatch-queue'] });
         },
         // onTripSheetStatusChanged
         (_tripSheetId, _status) => {
@@ -123,6 +122,50 @@ export const DispatchBoardPage: React.FC = () => {
     }
     setIsCreating(true);
     createTripSheetMutation.mutate();
+  };
+
+  const createTestJobs = async () => {
+    const testJobs = [
+      {
+        pickupAddress: '10 Industrial Ring, Zone 1',
+        pickupLat: -33.9249,
+        pickupLng: 18.4241,
+        dropoffAddress: '45 Harbour View Rd, Waterfront',
+        dropoffLat: -33.9015,
+        dropoffLng: 18.4190,
+        priority: 'Normal' as const,
+        notes: 'Fragile electronics. Handle with care.',
+      },
+      {
+        pickupAddress: '12 Central Square, CBD',
+        pickupLat: -33.9221,
+        pickupLng: 18.4231,
+        dropoffAddress: '88 Sunset Blvd, Camps Bay',
+        dropoffLat: -33.9510,
+        dropoffLng: 18.3780,
+        priority: 'High' as const,
+        notes: 'Medical supplies. Urgent morning delivery.',
+      },
+      {
+        pickupAddress: '22 Logistics Park, Epping',
+        pickupLat: -33.8765,
+        pickupLng: 18.5432,
+        dropoffAddress: '77 Tyger Valley, Bellville',
+        dropoffLat: -33.9123,
+        dropoffLng: 18.6012,
+        priority: 'Normal' as const,
+        notes: 'Bulk pallets. Tailgate required.',
+      },
+    ];
+
+    for (const job of testJobs) {
+      try {
+        await jobsApi.createJob(job);
+      } catch (error) {
+        console.error('Failed to create test job:', error);
+      }
+    }
+    queryClient.invalidateQueries({ queryKey: ['jobs', 'dispatch-queue'] });
   };
 
   const openTripSheetDetail = (tripSheet: TripSheet) => {
@@ -236,7 +279,16 @@ export const DispatchBoardPage: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <div className="flex items-center justify-end">
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={createTestJobs}
+                  disabled={isCreating}
+                >
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  Create Test Jobs
+                </Button>
                 <Button
                   variant={selectedJobIds.length === 0 ? 'outline' : 'primary'}
                   size="lg"
