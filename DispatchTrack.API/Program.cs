@@ -1,5 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using DispatchTrack.Api.Data;
 using DispatchTrack.Api.Data.DAL;
 using DispatchTrack.Api.Hubs;
@@ -47,6 +49,10 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ISignalRService, SignalRService>();
 builder.Services.AddScoped<ITripSheetDAL, TripSheetDAL>();
 builder.Services.AddScoped<ITripSheetService, TripSheetService>();
+builder.Services.AddScoped<IPdfService, PdfService>();
+
+// DinkToPdf converter (requires wkhtmltopdf native library)
+builder.Services.AddSingleton<IConverter>(sp => new SynchronizedConverter(new PdfTools()));
 
 // SignalR with JWT auth (allow token in query string for WebSocket)
 builder.Services.AddSignalR(options =>

@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Skeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Search, GripVertical, Truck, ArrowRight, X } from 'lucide-react';
+import { Search, GripVertical, Truck, ArrowRight, X, Download } from 'lucide-react';
 import { getSignalR } from '../services/signalr';
 import { cn } from '../utils/cn';
 
@@ -456,6 +456,27 @@ interface TripSheetDetailModalProps {
 
 const TripSheetDetailModal: React.FC<TripSheetDetailModalProps> = ({ tripSheet, onClose }) => {
   const statusLabels = ['Created', 'InProgress', 'Returned', 'Complete', 'Cancelled'];
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      const blob = await tripSheetApi.downloadPdf(tripSheet.tripSheetId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `TripSheet_${tripSheet.tripNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      alert('Failed to download PDF. Please try again.');
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -542,6 +563,10 @@ const TripSheetDetailModal: React.FC<TripSheetDetailModalProps> = ({ tripSheet, 
           {/* Actions */}
           <div className="flex items-center justify-end gap-2 p-4 border-t border-[var(--border-hairline)]">
             <Button variant="outline" size="sm" onClick={onClose}>Close</Button>
+            <Button variant="primary" size="sm" onClick={handleDownloadPdf} isLoading={isDownloadingPdf} disabled={isDownloadingPdf}>
+              <Download className="h-3.5 w-3.5 mr-1.5" />
+              Download PDF
+            </Button>
             <Button variant="primary" size="sm" onClick={() => { /* Print logic */ }}>Print Manifest</Button>
           </div>
         </div>

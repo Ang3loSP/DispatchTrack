@@ -135,4 +135,8 @@ export const tripSheetApi = {
   delete: async (id: number): Promise<void> => {
     await api.delete(`/tripsheets/${id}`);
   },
+  downloadPdf: async (id: number): Promise<Blob> => {
+    const { data } = await api.get(`/tripsheets/${id}/pdf`, { responseType: 'blob' });
+    return data;
+  },
 };
