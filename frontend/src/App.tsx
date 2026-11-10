@@ -12,6 +12,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { JobsPage } from './pages/JobsPage';
 import { DriverViewPage } from './pages/DriverViewPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
+import { DispatchBoardPage } from './pages/DispatchBoardPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,6 +77,17 @@ export const App: React.FC = () => {
                   <ProtectedRoute allowedRoles={['Admin', 'Dispatcher']}>
                     <Shell>
                       <JobsPage />
+                    </Shell>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/dispatch-board"
+                element={
+                  <ProtectedRoute allowedRoles={['Admin', 'Dispatcher']}>
+                    <Shell>
+                      <DispatchBoardPage />
                     </Shell>
                   </ProtectedRoute>
                 }

@@ -7,9 +7,18 @@ export type CountsChangedCallback = () => void;
 export type DriverLocationCallback = (driverId: number, lat: number, lng: number) => void;
 export type DriverStatusCallback = (driverId: number, status: string) => void;
 
+export type TripSheetCreatedCallback = (tripSheet: TripSheet) => void;
+export type TripSheetStatusChangedCallback = (tripSheetId: number, status: number) => void;
+export type StopAddedCallback = (tripSheetId: number, item: TripSheetItem) => void;
+export type StopRemovedCallback = (tripSheetId: number, itemId: number) => void;
+export type StopsReorderedCallback = (tripSheetId: number) => void;
+
+import type { TripSheet, TripSheetItem } from '../types';
+
 class SignalRService {
   private jobHubConnection: signalR.HubConnection | null = null;
   private driverHubConnection: signalR.HubConnection | null = null;
+  private tripSheetHubConnection: signalR.HubConnection | null = null;
   private baseUrl: string;
   private getToken: () => string | null;
 
@@ -135,6 +144,80 @@ class SignalRService {
     }
   }
 
+  // TripSheet Hub
+  async startTripSheetHub(
+    onTripSheetCreated?: TripSheetCreatedCallback,
+    onTripSheetStatusChanged?: TripSheetStatusChangedCallback,
+    onStopAdded?: StopAddedCallback,
+    onStopRemoved?: StopRemovedCallback,
+    onStopsReordered?: StopsReorderedCallback
+  ) {
+    if (this.tripSheetHubConnection?.state === signalR.HubConnectionState.Connected) {
+      return;
+    }
+
+    const token = this.getToken();
+    if (!token) {
+      console.warn('SignalR: No auth token available');
+      return;
+    }
+
+    this.tripSheetHubConnection = new signalR.HubConnectionBuilder()
+      .withUrl(`${this.baseUrl}/hubs/tripsheet`, {
+        accessTokenFactory: () => token,
+      })
+      .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+      .configureLogging(signalR.LogLevel.Warning)
+      .build();
+
+    this.tripSheetHubConnection.on('TripSheetCreated', (tripSheet: TripSheet) => {
+      onTripSheetCreated?.(tripSheet);
+    });
+
+    this.tripSheetHubConnection.on('TripSheetStatusChanged', (tripSheetId: number, status: number) => {
+      onTripSheetStatusChanged?.(tripSheetId, status);
+    });
+
+    this.tripSheetHubConnection.on('StopAdded', (tripSheetId: number, item: TripSheetItem) => {
+      onStopAdded?.(tripSheetId, item);
+    });
+
+    this.tripSheetHubConnection.on('StopRemoved', (tripSheetId: number, itemId: number) => {
+      onStopRemoved?.(tripSheetId, itemId);
+    });
+
+    this.tripSheetHubConnection.on('StopsReordered', (tripSheetId: number) => {
+      onStopsReordered?.(tripSheetId);
+    });
+
+    this.tripSheetHubConnection.onclose(() => {
+      console.log('SignalR TripSheetHub disconnected');
+    });
+
+    try {
+      await this.tripSheetHubConnection.start();
+      console.log('SignalR TripSheetHub connected');
+    } catch (err) {
+      console.error('SignalR TripSheetHub connection failed:', err);
+    }
+  }
+
+  async joinTripSheetGroup(tripSheetId: number) {
+    await this.tripSheetHubConnection?.invoke('JoinTripSheetGroup', tripSheetId);
+  }
+
+  async leaveTripSheetGroup(tripSheetId: number) {
+    await this.tripSheetHubConnection?.invoke('LeaveTripSheetGroup', tripSheetId);
+  }
+
+  async joinDispatchersGroupTripSheet() {
+    await this.tripSheetHubConnection?.invoke('JoinDispatchersGroup');
+  }
+
+  async leaveDispatchersGroupTripSheet() {
+    await this.tripSheetHubConnection?.invoke('LeaveDispatchersGroup');
+  }
+
   async joinDriverGroup(driverId: number) {
     await this.driverHubConnection?.invoke('JoinDriverGroup', driverId);
   }
@@ -154,8 +237,10 @@ class SignalRService {
   async stop() {
     await this.jobHubConnection?.stop();
     await this.driverHubConnection?.stop();
+    await this.tripSheetHubConnection?.stop();
     this.jobHubConnection = null;
     this.driverHubConnection = null;
+    this.tripSheetHubConnection = null;
   }
 
   get jobHubState() {
@@ -164,6 +249,10 @@ class SignalRService {
 
   get driverHubState() {
     return this.driverHubConnection?.state ?? signalR.HubConnectionState.Disconnected;
+  }
+
+  get tripSheetHubState() {
+    return this.tripSheetHubConnection?.state ?? signalR.HubConnectionState.Disconnected;
   }
 }
 

@@ -13,6 +13,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  MapPin,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -60,6 +61,12 @@ export const Shell: React.FC<ShellProps> = ({ children }) => {
       label: 'Dashboard',
       path: '/dashboard',
       icon: LayoutDashboard,
+      roles: ['Admin', 'Dispatcher'],
+    },
+    {
+      label: 'Dispatch Board',
+      path: '/dispatch-board',
+      icon: MapPin,
       roles: ['Admin', 'Dispatcher'],
     },
     {

@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using DispatchTrack.Api.Data;
+using DispatchTrack.Api.Data.DAL;
 using DispatchTrack.Api.Hubs;
 using DispatchTrack.Api.Models;
 using DispatchTrack.Api.Services;
@@ -44,6 +45,8 @@ else
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ISignalRService, SignalRService>();
+builder.Services.AddScoped<ITripSheetDAL, TripSheetDAL>();
+builder.Services.AddScoped<ITripSheetService, TripSheetService>();
 
 // SignalR with JWT auth (allow token in query string for WebSocket)
 builder.Services.AddSignalR(options =>
@@ -87,7 +90,9 @@ builder.Services.AddAuthentication(options =>
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
             if (!string.IsNullOrEmpty(accessToken) && 
-                (path.StartsWithSegments("/hubs/jobs") || path.StartsWithSegments("/hubs/drivers")))
+                (path.StartsWithSegments("/hubs/jobs") || 
+                 path.StartsWithSegments("/hubs/drivers") ||
+                 path.StartsWithSegments("/hubs/tripsheet")))
             {
                 context.Token = accessToken;
             }
@@ -206,6 +211,7 @@ app.MapControllers();
 // SignalR Hubs
 app.MapHub<JobHub>(JobHub.HubUrl);
 app.MapHub<DriverHub>(DriverHub.HubUrl);
+app.MapHub<TripSheetHub>(TripSheetHub.HubUrl);
 
 app.MapFallbackToFile("index.html");
 

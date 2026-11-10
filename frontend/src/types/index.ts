@@ -85,3 +85,46 @@ export interface CreateUserInput {
   role: UserRole;
   vehicleReg?: string;
 }
+
+export type TripSheetStatus = 0 | 1 | 2 | 3 | 4; // Created, InProgress, Returned, Complete, Cancelled
+export type DispatchPlan = 0 | 1 | 2 | 3; // None, Queue, Planned, InProgress/Complete
+
+export interface TripSheetItem {
+  tripSheetItemId: number;
+  tripSheetId: number;
+  jobId: number;
+  stopNumber: number;
+  nonCustomerDestinationId?: number | null;
+  nonTicketCustomerId?: number | null;
+  nonTicketDescription?: string | null;
+  createdAt: string;
+  job?: Job;
+}
+
+export interface TripSheet {
+  tripSheetId: number;
+  tripNumber: string;
+  status: TripSheetStatus;
+  dispatchDestinationCategory?: string | null;
+  driverId: number;
+  driverName: string;
+  tripStartDateTime?: string | null;
+  tripEndDateTime?: string | null;
+  createdByUserId: number;
+  createdAt: string;
+  updatedAt: string;
+  items: TripSheetItem[];
+}
+
+export interface CreateTripSheetInput {
+  tripNumber: string;
+  driverId: number;
+  driverName: string;
+  category?: string;
+  createdByUserId: number;
+  jobIds: number[];
+}
+
+export interface AddJobsToTripSheetInput {
+  jobIds: number[];
+}

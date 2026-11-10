@@ -9,6 +9,9 @@ import type {
   DashboardSummary,
   CreateUserInput,
   JobStatus,
+  TripSheet,
+  CreateTripSheetInput,
+  AddJobsToTripSheetInput,
 } from '../types';
 
 export const authApi = {
@@ -81,5 +84,55 @@ export const demoApi = {
   resetDemo: async (): Promise<{ message: string }> => {
     const { data } = await api.post<{ message: string }>('/demo/reset');
     return data;
+  },
+};
+
+export const tripSheetApi = {
+  getOpen: async (): Promise<TripSheet[]> => {
+    const { data } = await api.get<TripSheet[]>('/tripsheets/open');
+    return data;
+  },
+  getById: async (id: number): Promise<TripSheet> => {
+    const { data } = await api.get<TripSheet>(`/tripsheets/${id}`);
+    return data;
+  },
+  getByDriver: async (driverId: number): Promise<TripSheet[]> => {
+    const { data } = await api.get<TripSheet[]>(`/tripsheets/driver/${driverId}`);
+    return data;
+  },
+  create: async (input: CreateTripSheetInput): Promise<TripSheet> => {
+    const { data } = await api.post<TripSheet>('/tripsheets', input);
+    return data;
+  },
+  addJobs: async (id: number, input: AddJobsToTripSheetInput): Promise<TripSheet> => {
+    const { data } = await api.post<TripSheet>(`/tripsheets/${id}/jobs`, input);
+    return data;
+  },
+  removeJob: async (tripSheetId: number, jobId: number): Promise<TripSheet> => {
+    const { data } = await api.delete<TripSheet>(`/tripsheets/${tripSheetId}/jobs/${jobId}`);
+    return data;
+  },
+  reorderStops: async (id: number, itemIdToStopNumber: Record<number, number>): Promise<TripSheet> => {
+    const { data } = await api.patch<TripSheet>(`/tripsheets/${id}/reorder`, itemIdToStopNumber);
+    return data;
+  },
+  depart: async (id: number): Promise<TripSheet> => {
+    const { data } = await api.post<TripSheet>(`/tripsheets/${id}/depart`);
+    return data;
+  },
+  returnTrip: async (id: number): Promise<TripSheet> => {
+    const { data } = await api.post<TripSheet>(`/tripsheets/${id}/return`);
+    return data;
+  },
+  complete: async (id: number): Promise<TripSheet> => {
+    const { data } = await api.post<TripSheet>(`/tripsheets/${id}/complete`);
+    return data;
+  },
+  cancel: async (id: number): Promise<TripSheet> => {
+    const { data } = await api.post<TripSheet>(`/tripsheets/${id}/cancel`);
+    return data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/tripsheets/${id}`);
   },
 };
