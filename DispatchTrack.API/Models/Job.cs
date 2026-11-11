@@ -28,7 +28,6 @@ public class Job
     public uint Version { get; set; }
 
     // Phase 1: TripSheet integration
-    public int DispatchPlan { get; set; } = 0; // 0=None, 1=Queue, 2=Planned, 3=InProgress/Complete
     public long? TripSheetId { get; set; }
     public virtual TripSheet? TripSheet { get; set; }
 

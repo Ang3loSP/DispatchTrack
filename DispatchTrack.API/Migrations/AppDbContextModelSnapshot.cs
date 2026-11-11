@@ -65,9 +65,6 @@ namespace DispatchTrack.API.Migrations
                     b.Property<int>("CreatedByUserId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("DispatchPlan")
-                        .HasColumnType("integer");
-
                     b.Property<string>("DropoffAddress")
                         .IsRequired()
                         .HasColumnType("text");

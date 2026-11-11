@@ -87,7 +87,6 @@ export interface CreateUserInput {
 }
 
 export type TripSheetStatus = 0 | 1 | 2 | 3 | 4; // Created, InProgress, Returned, Complete, Cancelled
-export type DispatchPlan = 0 | 1 | 2 | 3; // None, Queue, Planned, InProgress/Complete
 
 export interface TripSheetItem {
   tripSheetItemId: number;

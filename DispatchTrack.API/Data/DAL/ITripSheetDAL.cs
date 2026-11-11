@@ -24,5 +24,5 @@ public interface ITripSheetDAL
     Task<TripSheet?> DepartAsync(long tripSheetId);
     Task<TripSheet?> ReturnAsync(long tripSheetId);
     Task<TripSheet?> CompleteAsync(long tripSheetId);
-    Task<TripSheet?> CancelAsync(long tripSheetId);
+    Task<TripSheet?> CancelAsync(long tripSheetId, int changedByUserId);
 }

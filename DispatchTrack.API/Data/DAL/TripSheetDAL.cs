@@ -159,10 +159,7 @@ public class TripSheetDAL : ITripSheetDAL
 
     public async Task<TripSheet?> DepartAsync(long tripSheetId)
     {
-        var tripSheet = await _context.TripSheets
-            .Include(t => t.Items)
-                .ThenInclude(i => i.Job)
-            .FirstOrDefaultAsync(t => t.TripSheetId == tripSheetId);
+        var tripSheet = await _context.TripSheets.FindAsync(tripSheetId);
 
         if (tripSheet == null || tripSheet.Status != 0) return null; // Only Created can depart
 
@@ -170,16 +167,7 @@ public class TripSheetDAL : ITripSheetDAL
         tripSheet.TripStartDateTime = DateTime.UtcNow;
         tripSheet.UpdatedAt = DateTime.UtcNow;
 
-        // Advance all jobs to InProgress/Complete (DispatchPlan = 3)
-        foreach (var item in tripSheet.Items)
-        {
-            if (item.Job != null)
-            {
-                item.Job.DispatchPlan = 3;
-                item.Job.UpdatedAt = DateTime.UtcNow;
-            }
-        }
-
+        // Jobs stay Assigned for the trip; the driver's status endpoint moves them on.
         try
         {
             await _context.SaveChangesAsync();
@@ -230,7 +218,7 @@ public class TripSheetDAL : ITripSheetDAL
         }
     }
 
-    public async Task<TripSheet?> CancelAsync(long tripSheetId)
+    public async Task<TripSheet?> CancelAsync(long tripSheetId, int changedByUserId)
     {
         var tripSheet = await _context.TripSheets
             .Include(t => t.Items)
@@ -242,18 +230,31 @@ public class TripSheetDAL : ITripSheetDAL
         var isTerminal = tripSheet.Status is 3 or 4; // Complete or Cancelled
         if (isTerminal) return null; // Cannot cancel terminal trips
 
+        var now = DateTime.UtcNow;
         tripSheet.Status = 4; // Cancelled
-        tripSheet.UpdatedAt = DateTime.UtcNow;
+        tripSheet.UpdatedAt = now;
 
-        // Return all jobs to queue (DispatchPlan = 1)
+        // Return all jobs to the queue, exactly as if they had never been allocated.
         foreach (var item in tripSheet.Items)
         {
-            if (item.Job != null)
+            if (item.Job == null) continue;
+
+            var previous = item.Job.Status;
+            item.Job.Status = JobStatus.Pending;
+            item.Job.TripSheetId = null;
+            item.Job.AssignedDriverId = null;
+            item.Job.UpdatedAt = now;
+
+            if (previous != JobStatus.Pending)
             {
-                item.Job.DispatchPlan = 1; // Queue
-                item.Job.TripSheetId = null;
-                item.Job.AssignedDriverId = null;
-                item.Job.UpdatedAt = DateTime.UtcNow;
+                _context.StatusHistories.Add(new StatusHistory
+                {
+                    JobId = item.Job.Id,
+                    OldStatus = previous,
+                    NewStatus = JobStatus.Pending,
+                    ChangedByUserId = changedByUserId,
+                    ChangedAt = now
+                });
             }
         }
 

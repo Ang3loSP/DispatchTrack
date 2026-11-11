@@ -18,26 +18,17 @@ public class TripSheetService : ITripSheetService
 
     public async Task<TripSheet?> CreateTripSheetAsync(string tripNumber, int driverId, string driverName, string? category, int createdByUserId, List<int> jobIds)
     {
-        // Validate driver exists
         var driver = await _context.Drivers.FindAsync(driverId);
         if (driver == null) return null;
 
-        // Validate all jobs exist and are in queue (DispatchPlan = 1)
-        var jobs = await _context.Jobs
-            .Where(j => jobIds.Contains(j.Id))
-            .ToListAsync();
-
-        if (jobs.Count != jobIds.Count) return null;
-
-        foreach (var job in jobs)
-        {
-            if (job.DispatchPlan != 1) return null; // Must be in queue
-        }
+        var jobs = await GetQueuedJobsAsync(jobIds);
+        if (jobs == null) return null;
 
         // Check trip number uniqueness
         var existing = await _tripSheetDAL.GetByTripNumberAsync(tripNumber);
         if (existing != null) return null;
 
+        var now = DateTime.UtcNow;
         var tripSheet = new TripSheet
         {
             TripNumber = tripNumber,
@@ -46,111 +37,86 @@ public class TripSheetService : ITripSheetService
             DriverId = driverId,
             DriverName = driverName,
             CreatedByUserId = createdByUserId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = now,
+            UpdatedAt = now
         };
 
-        tripSheet = await _tripSheetDAL.CreateAsync(tripSheet);
+        // A trip sheet without its jobs, or jobs without their trip sheet, is unusable data.
+        await using var transaction = await _context.Database.BeginTransactionAsync();
 
-        // Add items
+        _context.TripSheets.Add(tripSheet);
+        await _context.SaveChangesAsync(); // assigns TripSheetId
+
         for (int i = 0; i < jobIds.Count; i++)
         {
-            var item = new TripSheetItem
+            _context.TripSheetItems.Add(new TripSheetItem
             {
                 TripSheetId = tripSheet.TripSheetId,
                 JobId = jobIds[i],
                 StopNumber = i + 1,
-                CreatedAt = DateTime.UtcNow
-            };
-            await _tripSheetDAL.AddItemAsync(item);
+                CreatedAt = now
+            });
 
-            // Update job
-            var job = jobs.First(j => j.Id == jobIds[i]);
-            job.DispatchPlan = 2; // Planned
-            job.TripSheetId = tripSheet.TripSheetId;
-            job.AssignedDriverId = driverId;
-            job.UpdatedAt = DateTime.UtcNow;
+            AssignToTripSheet(jobs[jobIds[i]], tripSheet, driverId, createdByUserId, now);
         }
 
         await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return await _tripSheetDAL.GetByIdAsync(tripSheet.TripSheetId);
     }
 
-    public async Task<TripSheet?> AddJobsToTripSheetAsync(long tripSheetId, List<int> jobIds)
+    public async Task<TripSheet?> AddJobsToTripSheetAsync(long tripSheetId, List<int> jobIds, int changedByUserId)
     {
         var tripSheet = await _tripSheetDAL.GetByIdAsync(tripSheetId);
         if (tripSheet == null || tripSheet.Status != 0) return null; // Only Created
 
-        var existingItems = await _tripSheetDAL.GetItemsAsync(tripSheetId);
-        var nextStopNumber = existingItems.Count > 0 ? existingItems.Max(i => i.StopNumber) + 1 : 1;
+        var jobs = await GetQueuedJobsAsync(jobIds);
+        if (jobs == null) return null;
 
-        var jobs = await _context.Jobs
-            .Where(j => jobIds.Contains(j.Id))
-            .ToListAsync();
-
-        if (jobs.Count != jobIds.Count) return null;
-
-        foreach (var job in jobs)
-        {
-            if (job.DispatchPlan != 1) return null;
-        }
+        var nextStopNumber = tripSheet.Items.Count > 0 ? tripSheet.Items.Max(i => i.StopNumber) + 1 : 1;
+        var now = DateTime.UtcNow;
 
         for (int i = 0; i < jobIds.Count; i++)
         {
-            var item = new TripSheetItem
+            _context.TripSheetItems.Add(new TripSheetItem
             {
                 TripSheetId = tripSheetId,
                 JobId = jobIds[i],
                 StopNumber = nextStopNumber + i,
-                CreatedAt = DateTime.UtcNow
-            };
-            await _tripSheetDAL.AddItemAsync(item);
+                CreatedAt = now
+            });
 
-            var job = jobs.First(j => j.Id == jobIds[i]);
-            job.DispatchPlan = 2;
-            job.TripSheetId = tripSheetId;
-            job.AssignedDriverId = tripSheet.DriverId;
-            job.UpdatedAt = DateTime.UtcNow;
+            AssignToTripSheet(jobs[jobIds[i]], tripSheet, tripSheet.DriverId, changedByUserId, now);
         }
 
         await _context.SaveChangesAsync();
         return await _tripSheetDAL.GetByIdAsync(tripSheetId);
     }
 
-    public async Task<TripSheet?> RemoveJobFromTripSheetAsync(long tripSheetId, int jobId)
+    public async Task<TripSheet?> RemoveJobFromTripSheetAsync(long tripSheetId, int jobId, int changedByUserId)
     {
         var tripSheet = await _tripSheetDAL.GetByIdAsync(tripSheetId);
         if (tripSheet == null || tripSheet.Status != 0) return null;
 
-        var item = (await _tripSheetDAL.GetItemsAsync(tripSheetId))
-            .FirstOrDefault(i => i.JobId == jobId);
-
+        var item = tripSheet.Items.FirstOrDefault(i => i.JobId == jobId);
         if (item == null) return null;
 
-        await _tripSheetDAL.RemoveItemAsync(item.TripSheetItemId);
+        _context.TripSheetItems.Remove(item);
 
-        // Update job
-        var job = await _context.Jobs.FindAsync(jobId);
-        if (job != null)
+        if (item.Job != null)
         {
-            job.DispatchPlan = 1; // Queue
-            job.TripSheetId = null;
-            job.AssignedDriverId = null;
-            job.UpdatedAt = DateTime.UtcNow;
+            ReturnToQueue(item.Job, changedByUserId, DateTime.UtcNow);
+        }
+
+        // Close the gap left by the removed stop.
+        var stopNumber = 1;
+        foreach (var remaining in tripSheet.Items.Where(i => i != item).OrderBy(i => i.StopNumber))
+        {
+            remaining.StopNumber = stopNumber++;
         }
 
         await _context.SaveChangesAsync();
-
-        // Renumber remaining stops
-        var remainingItems = await _tripSheetDAL.GetItemsAsync(tripSheetId);
-        var reorder = remainingItems
-            .OrderBy(i => i.StopNumber)
-            .Select((item, index) => new { item.TripSheetItemId, StopNumber = index + 1 })
-            .ToDictionary(x => x.TripSheetItemId, x => x.StopNumber);
-
-        await _tripSheetDAL.ReorderItemsAsync(tripSheetId, reorder);
-
         return await _tripSheetDAL.GetByIdAsync(tripSheetId);
     }
 
@@ -178,9 +144,9 @@ public class TripSheetService : ITripSheetService
         return await _tripSheetDAL.CompleteAsync(tripSheetId);
     }
 
-    public async Task<TripSheet?> CancelTripSheetAsync(long tripSheetId)
+    public async Task<TripSheet?> CancelTripSheetAsync(long tripSheetId, int changedByUserId)
     {
-        return await _tripSheetDAL.CancelAsync(tripSheetId);
+        return await _tripSheetDAL.CancelAsync(tripSheetId, changedByUserId);
     }
 
     public async Task<TripSheet?> GetTripSheetAsync(long tripSheetId)
@@ -198,13 +164,82 @@ public class TripSheetService : ITripSheetService
         return await _tripSheetDAL.GetByDriverAsync(driverId);
     }
 
-    public async Task<bool> DeleteTripSheetAsync(long tripSheetId)
+    public async Task<bool> DeleteTripSheetAsync(long tripSheetId, int changedByUserId)
     {
         var tripSheet = await _tripSheetDAL.GetByIdAsync(tripSheetId);
         if (tripSheet == null) return false;
 
         if (tripSheet.Status != 0) return false; // Only Created can be deleted
 
-        return await _tripSheetDAL.DeleteAsync(tripSheetId);
+        // Deleting the sheet must not leave its jobs Assigned to a trip that no longer exists.
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        var now = DateTime.UtcNow;
+        foreach (var item in tripSheet.Items.Where(i => i.Job != null))
+        {
+            ReturnToQueue(item.Job!, changedByUserId, now);
+        }
+
+        await _context.SaveChangesAsync();
+
+        var deleted = await _tripSheetDAL.DeleteAsync(tripSheetId);
+        await transaction.CommitAsync();
+        return deleted;
+    }
+
+    // The dispatch queue: unassigned work that no trip sheet has claimed yet.
+    private async Task<Dictionary<int, Job>?> GetQueuedJobsAsync(List<int> jobIds)
+    {
+        var jobs = await _context.Jobs
+            .Where(j => jobIds.Contains(j.Id))
+            .ToDictionaryAsync(j => j.Id);
+
+        var allQueued = jobs.Count == jobIds.Count
+            && jobs.Values.All(j => j.Status == JobStatus.Pending && j.TripSheetId == null);
+
+        return allQueued ? jobs : null;
+    }
+
+    // Same status change as PATCH /api/jobs/{id}/assign, recorded the same way.
+    private void AssignToTripSheet(Job job, TripSheet tripSheet, int driverId, int changedByUserId, DateTime now)
+    {
+        var previous = job.Status;
+        job.Status = JobStatus.Assigned;
+        job.TripSheetId = tripSheet.TripSheetId;
+        job.AssignedDriverId = driverId;
+        job.UpdatedAt = now;
+
+        if (previous != JobStatus.Assigned)
+        {
+            _context.StatusHistories.Add(new StatusHistory
+            {
+                JobId = job.Id,
+                OldStatus = previous,
+                NewStatus = JobStatus.Assigned,
+                ChangedByUserId = changedByUserId,
+                ChangedAt = now
+            });
+        }
+    }
+
+    private void ReturnToQueue(Job job, int changedByUserId, DateTime now)
+    {
+        var previous = job.Status;
+        job.Status = JobStatus.Pending;
+        job.TripSheetId = null;
+        job.AssignedDriverId = null;
+        job.UpdatedAt = now;
+
+        if (previous != JobStatus.Pending)
+        {
+            _context.StatusHistories.Add(new StatusHistory
+            {
+                JobId = job.Id,
+                OldStatus = previous,
+                NewStatus = JobStatus.Pending,
+                ChangedByUserId = changedByUserId,
+                ChangedAt = now
+            });
+        }
     }
 }

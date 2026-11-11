@@ -65,8 +65,8 @@ CREATE TABLE TripSheetItem (
 );
 
 -- Add to Job table
-ALTER TABLE Job ADD DispatchPlan INT NOT NULL DEFAULT 0; -- 0=None, 1=Queue, 2=Planned, 3=InProgress/Complete
 ALTER TABLE Job ADD TripSheetId BIGINT NULL; -- FK to TripSheet
+-- No DispatchPlan column: the queue is derived from Job.Status = Pending AND TripSheetId IS NULL.
 ```
 
 ### Phase 3 (Sessions + Geocoding)
@@ -214,11 +214,11 @@ builder.Services.Configure<RoutePlanningSettings>(builder.Configuration.GetSecti
 
 | Event | Action |
 |-------|--------|
-| TripSheet created | Job `DispatchPlan=2` (Planned), `AssignedDriverId` set |
-| TripSheet departed | Job `DispatchPlan=3`, TripSheet `Status=InProgress`, `TripStartDateTime` |
+| TripSheet created | Job `Status=Assigned`, `AssignedDriverId` + `TripSheetId` set, `StatusHistory` row |
+| TripSheet departed | TripSheet `Status=InProgress`, `TripStartDateTime` (jobs stay `Assigned`; the driver's status endpoint moves them on) |
 | TripSheet returned | TripSheet `Status=Returned`, `TripEndDateTime` |
-| TripSheet completed | TripSheet `Status=Complete`, Job `DispatchPlan=3` |
-| TripSheet cancelled | Jobs return to queue (`DispatchPlan=1`), TripSheet `Status=Cancelled` |
+| TripSheet completed | TripSheet `Status=Complete` |
+| TripSheet cancelled | Jobs back to `Status=Pending` with `AssignedDriverId`/`TripSheetId` cleared (i.e. back in the queue), TripSheet `Status=Cancelled` |
 
 ---
 
@@ -238,7 +238,7 @@ builder.Services.Configure<RoutePlanningSettings>(builder.Configuration.GetSecti
 ## 7. Migration & Deployment Strategy
 
 ### Phase 1 (Week 1)
-1. Migration: `TripSheet`, `TripSheetItem`, `Job.DispatchPlan`, `Job.TripSheetId`
+1. Migration: `TripSheet`, `TripSheetItem`, `Job.TripSheetId`
 2. Backend: `TripSheetDAL`, `TripSheetService`, `TripSheetHub`
 3. Frontend: `DispatchBoardPage`, `TripSheetDetailPage`, PDF endpoint
 4. Test locally → CI → Render deploy
@@ -316,7 +316,7 @@ builder.Services.Configure<RoutePlanningSettings>(builder.Configuration.GetSecti
 ## Next Steps
 
 1. **Create branch:** `git checkout -b feature/route-planning-phase1`
-2. **Phase 1 DB migration** — `TripSheet`, `TripSheetItem`, `Job.DispatchPlan`
+2. **Phase 1 DB migration** - `TripSheet`, `TripSheetItem`, `Job.TripSheetId`
 3. **Backend:** `TripSheetDAL`, `TripSheetService`, `TripSheetHub`
 4. **Frontend:** `DispatchBoardPage`, `TripSheetDetailPage`
 5. **Local test** → CI → Render deploy

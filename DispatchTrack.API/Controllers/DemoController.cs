@@ -28,8 +28,11 @@ public class DemoController : ControllerBase
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
-        // Order matters: FKs require children first (StatusHistories -> Jobs, then Drivers/RefreshTokens -> Users).
+        // Order matters: FKs require children first (TripSheetItems -> TripSheets/Jobs,
+        // StatusHistories -> Jobs, then Drivers/RefreshTokens -> Users).
         await _context.StatusHistories.ExecuteDeleteAsync();
+        await _context.TripSheetItems.ExecuteDeleteAsync();
+        await _context.TripSheets.ExecuteDeleteAsync();
         await _context.Jobs.ExecuteDeleteAsync();
         await _context.RefreshTokens.ExecuteDeleteAsync();
         await _context.Drivers.ExecuteDeleteAsync();
