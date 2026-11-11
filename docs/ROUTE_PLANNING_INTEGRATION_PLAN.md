@@ -25,7 +25,7 @@ Integrate the route planning system (from `dispatch route planning/current sourc
 | Phase | Features | Effort | Deliverable |
 |-------|----------|--------|-------------|
 | **1** | TripSheet entity, StopNumber, Dispatch Board (queue + open trips), one-click TripSheet creation | ~1 week | Core dispatch workflow |
-| **2** | Trip Sheet Detail page, printable manifest, PDF export (wkhtmltopdf) | ~3 days | Driver manifest |
+| **2** | Trip Sheet Detail page, printable manifest (browser print / Save as PDF) | ~3 days | Driver manifest |
 | **3** | Auto-clustering (15km), manual group editing, session persistence (90-day TTL) | ~1 week | Route optimization |
 | **4** | OSRM road routing, Nominatim geocoding + cache, background geocoding job | ~1 week | Full route planning |
 
@@ -172,7 +172,7 @@ builder.Services.Configure<RoutePlanningSettings>(builder.Configuration.GetSecti
 |-----------|---------|
 | `DispatchBoardPage.tsx` | `/dispatchboard` — queue left, open TripSheets right; drag-drop allocate |
 | `TripSheetDetailPage.tsx` | `/tripsheet/{id}` — printable manifest with check columns |
-| `TripSheetPdf.tsx` | PDF export (wkhtmltopdf via backend endpoint) |
+| `TripSheetDetailModal` (in `DispatchBoardPage.tsx`) | Printable manifest — `window.print()` + `@media print` |
 
 ### Phase 3
 | Component | Purpose |
@@ -244,7 +244,7 @@ builder.Services.Configure<RoutePlanningSettings>(builder.Configuration.GetSecti
 4. Test locally → CI → Render deploy
 
 ### Phase 2 (Week 1-2)
-1. PDF export (wkhtmltopdf via backend)
+1. Printable manifest (browser print)
 2. Printable manifest UI
 2. Deploy
 
@@ -320,7 +320,7 @@ builder.Services.Configure<RoutePlanningSettings>(builder.Configuration.GetSecti
 3. **Backend:** `TripSheetDAL`, `TripSheetService`, `TripSheetHub`
 4. **Frontend:** `DispatchBoardPage`, `TripSheetDetailPage`
 5. **Local test** → CI → Render deploy
-6. **Phase 2:** PDF export
+6. **Phase 2:** Printable manifest
 7. **Phase 3+:** Per plan above
 
 ---

@@ -42,3 +42,54 @@ body {
   padding: 0;
   min-height: 100vh;
 }
+
+/* Trip sheet manifest printing: the modal is the printable document. */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* Hide the app shell and dialog chrome; only the manifest paints. */
+  #root {
+    visibility: hidden;
+  }
+
+  .print-root {
+    position: static !important;
+    padding: 0 !important;
+    background: none !important;
+  }
+
+  .print-manifest {
+    visibility: visible;
+    max-width: none !important;
+    max-height: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  .print-manifest * {
+    visibility: visible;
+  }
+
+  .print-content {
+    overflow: visible !important;
+    max-height: none !important;
+    padding: 0 !important;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  /* Keep each stop on one page. */
+  .print-content .divide-y > * {
+    break-inside: avoid;
+  }
+}
