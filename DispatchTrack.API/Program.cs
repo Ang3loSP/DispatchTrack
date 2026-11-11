@@ -1,13 +1,12 @@
 using System.Text;
 using System.Threading.RateLimiting;
-using DinkToPdf;
-using DinkToPdf.Contracts;
 using DispatchTrack.Api.Data;
 using DispatchTrack.Api.Data.DAL;
 using DispatchTrack.Api.Hubs;
 using DispatchTrack.Api.Models;
 using DispatchTrack.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +28,8 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 // Dashboard cache (plan §3): Redis when configured, in-memory otherwise.
 // Either way the cache is non-critical — the dashboard falls back to the DB on failure.
-var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+var redisConnectionString = RedisConnectionStrings.Normalize(
+    builder.Configuration.GetConnectionString("Redis"));
 if (string.IsNullOrWhiteSpace(redisConnectionString))
 {
     builder.Services.AddDistributedMemoryCache();
@@ -49,10 +49,6 @@ builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ISignalRService, SignalRService>();
 builder.Services.AddScoped<ITripSheetDAL, TripSheetDAL>();
 builder.Services.AddScoped<ITripSheetService, TripSheetService>();
-builder.Services.AddScoped<IPdfService, PdfService>();
-
-// DinkToPdf converter (requires wkhtmltopdf native library)
-builder.Services.AddSingleton<IConverter>(sp => new SynchronizedConverter(new PdfTools()));
 
 // SignalR with JWT auth (allow token in query string for WebSocket)
 builder.Services.AddSignalR(options =>
@@ -108,6 +104,16 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// Render terminates TLS, so requests reach the container as plain HTTP. Trust the proxy's
+// forwarded headers to recover the real scheme (Secure refresh cookie, no bogus redirects).
+// Render's edge IPs are dynamic, so the default loopback-only trust list is cleared.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Rate limiting (plan §5): only enforced outside Development (see middleware below),
 // so local dev and the test suite are unaffected.
@@ -193,7 +199,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+app.UseForwardedHeaders();
 
 app.UseCors("DevCors");
 

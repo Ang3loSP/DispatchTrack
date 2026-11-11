@@ -91,6 +91,7 @@ DispatchTrack/
 ├── .github/workflows/          # CI (build, test, docker) + Deploy (Render hook)
 ├── docs/
 │   ├── DESIGN.md               # Frontend design direction (tokens, components, patterns)
+│   ├── WORK_LOG.md             # Uncommitted work, verified defects, next steps
 │   └── adr/                    # Architecture Decision Records
 ├── DispatchTrack.API/          # ASP.NET Core Web API
 │   ├── Controllers/            # Auth, Jobs, Drivers, Dashboard, Demo, Users

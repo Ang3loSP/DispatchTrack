@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { UserProfile } from '../types';
 import { authApi } from '../api/endpoints';
-import { setAccessToken } from '../api/client';
+import { getAccessToken, setAccessToken } from '../api/client';
 import { initSignalR, getSignalR } from '../services/signalr';
 import * as signalR from '@microsoft/signalr';
 
@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Initialize SignalR if not already connected
       if (!getSignalR() || getSignalR()!.jobHubState === signalR.HubConnectionState.Disconnected) {
-        initSignalR(API_BASE_URL, () => localStorage.getItem('access_token'));
+        initSignalR(API_BASE_URL, getAccessToken);
       }
     } catch {
       setAccessToken(null);
@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(auth.user);
 
           // Initialize SignalR after successful auth restore
-          initSignalR(API_BASE_URL, () => localStorage.getItem('access_token'));
+          initSignalR(API_BASE_URL, getAccessToken);
         }
       })
       .catch(() => {
@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.user);
 
       // Initialize SignalR after successful login
-      initSignalR(API_BASE_URL, () => localStorage.getItem('access_token'));
+      initSignalR(API_BASE_URL, getAccessToken);
     } finally {
       setIsLoading(false);
     }

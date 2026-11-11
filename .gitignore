@@ -434,3 +434,7 @@ FodyWeavers.xsd
 *.msp
 DispatchTrack_ Flagship Project Plan.md
 DispatchTrack_CV_Project_Entry.md
+
+# Local agent tooling and transcripts (not project material)
+.agents/
+session-*.md

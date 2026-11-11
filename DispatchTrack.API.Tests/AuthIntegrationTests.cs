@@ -64,6 +64,27 @@ public class AuthIntegrationTests : IClassFixture<WebApplicationFactory<Program>
     }
 
     [Fact]
+    public async Task Login_BehindTlsTerminatingProxy_ShouldSetSecureRefreshCookie()
+    {
+        // Render terminates TLS and forwards X-Forwarded-Proto; without trusting it the API
+        // sees plain HTTP and issues the refresh cookie without the Secure flag.
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Forwarded-Proto", "https");
+
+        var response = await client.PostAsJsonAsync("/api/auth/login", new LoginRequestDto
+        {
+            Email = "admin@dispatchtrack.local",
+            Password = "Password123!"
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var cookie = Assert.Single(
+            response.Headers.GetValues("Set-Cookie"),
+            c => c.StartsWith("refreshToken="));
+        Assert.Contains("secure", cookie, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task Login_WithValidCredentials_ShouldReturnTokensAndAllowAccessToProtectedEndpoints()
     {
         // Arrange - use seeded admin account

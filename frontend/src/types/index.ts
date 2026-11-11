@@ -1,10 +1,10 @@
 export type UserRole = 'Admin' | 'Dispatcher' | 'Driver';
 
-export type DriverStatus = 'Available' | 'OnDelivery' | 'Offline';
+export type DriverStatus = 'Available' | 'OnRoute' | 'Offline';
 
 export type JobStatus = 'Pending' | 'Assigned' | 'InTransit' | 'Delivered' | 'Failed';
 
-export type JobPriority = 'Low' | 'Normal' | 'High' | 'Urgent';
+export type JobPriority = 'Low' | 'Normal' | 'High';
 
 export interface UserProfile {
   id: number;

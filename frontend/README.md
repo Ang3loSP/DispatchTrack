@@ -23,7 +23,6 @@ npx tsc --noEmit     # TypeScript typecheck
 | `axios` | HTTP client with interceptors |
 | `lucide-react` | Icons (tree-shakeable) |
 | `@fontsource/inter` | Self-hosted Inter font |
-| `zod` | Schema validation (forms) |
 | `tailwindcss` + `@tailwindcss/vite` | Utility-first CSS (v4, CSS variables) |
 
 **Dev Dependencies:** `typescript`, `vite`, `@vitejs/plugin-react`, `oxlint`, `@types/*`

@@ -34,50 +34,56 @@ class SignalRService {
     onJobCreated?: JobCreatedCallback,
     onCountsChanged?: CountsChangedCallback
   ) {
-    if (this.jobHubConnection?.state === signalR.HubConnectionState.Connected) {
-      return;
+    if (this.jobHubConnection?.state !== signalR.HubConnectionState.Connected) {
+      const token = this.getToken();
+      if (!token) {
+        console.warn('SignalR: No auth token available');
+        return;
+      }
+
+      this.jobHubConnection = new signalR.HubConnectionBuilder()
+        .withUrl(`${this.baseUrl}/hubs/jobs`, {
+          accessTokenFactory: () => this.getToken() ?? '',
+        })
+        .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+        .configureLogging(signalR.LogLevel.Warning)
+        .build();
+
+      this.jobHubConnection.onclose(() => {
+        console.log('SignalR JobHub disconnected');
+      });
+
+      try {
+        await this.jobHubConnection.start();
+        console.log('SignalR JobHub connected');
+      } catch (err) {
+        console.error('SignalR JobHub connection failed:', err);
+        return;
+      }
     }
 
-    const token = this.getToken();
-    if (!token) {
-      console.warn('SignalR: No auth token available');
-      return;
-    }
+    // The singleton outlives pages, so the mounted page replaces the previous handlers.
+    const hub = this.jobHubConnection!;
+    hub.off('JobStatusChanged');
+    hub.off('JobAssigned');
+    hub.off('JobCreated');
+    hub.off('CountsChanged');
 
-    this.jobHubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${this.baseUrl}/hubs/jobs`, {
-        accessTokenFactory: () => token,
-      })
-      .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
-      .configureLogging(signalR.LogLevel.Warning)
-      .build();
-
-    this.jobHubConnection.on('JobStatusChanged', (jobId: number, status: string, driverName?: string) => {
+    hub.on('JobStatusChanged', (jobId: number, status: string, driverName?: string) => {
       onJobStatusChanged?.(jobId, status, driverName);
     });
 
-    this.jobHubConnection.on('JobAssigned', (jobId: number, driverId: number, driverName: string) => {
+    hub.on('JobAssigned', (jobId: number, driverId: number, driverName: string) => {
       onJobAssigned?.(jobId, driverId, driverName);
     });
 
-    this.jobHubConnection.on('JobCreated', (jobId: number) => {
+    hub.on('JobCreated', (jobId: number) => {
       onJobCreated?.(jobId);
     });
 
-    this.jobHubConnection.on('CountsChanged', () => {
+    hub.on('CountsChanged', () => {
       onCountsChanged?.();
     });
-
-    this.jobHubConnection.onclose(() => {
-      console.log('SignalR JobHub disconnected');
-    });
-
-    try {
-      await this.jobHubConnection.start();
-      console.log('SignalR JobHub connected');
-    } catch (err) {
-      console.error('SignalR JobHub connection failed:', err);
-    }
   }
 
   async joinJobGroup(jobId: number) {
@@ -101,47 +107,52 @@ class SignalRService {
     onDriverLocation?: DriverLocationCallback,
     onDriverStatus?: DriverStatusCallback
   ) {
-    if (this.driverHubConnection?.state === signalR.HubConnectionState.Connected) {
-      return;
+    if (this.driverHubConnection?.state !== signalR.HubConnectionState.Connected) {
+      const token = this.getToken();
+      if (!token) {
+        console.warn('SignalR: No auth token available');
+        return;
+      }
+
+      this.driverHubConnection = new signalR.HubConnectionBuilder()
+        .withUrl(`${this.baseUrl}/hubs/drivers`, {
+          accessTokenFactory: () => this.getToken() ?? '',
+        })
+        .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+        .configureLogging(signalR.LogLevel.Warning)
+        .build();
+
+      this.driverHubConnection.onclose(() => {
+        console.log('SignalR DriverHub disconnected');
+      });
+
+      try {
+        await this.driverHubConnection.start();
+        console.log('SignalR DriverHub connected');
+      } catch (err) {
+        console.error('SignalR DriverHub connection failed:', err);
+        return;
+      }
     }
 
-    const token = this.getToken();
-    if (!token) {
-      console.warn('SignalR: No auth token available');
-      return;
-    }
+    // The singleton outlives pages, so the mounted page replaces the previous handlers.
+    const hub = this.driverHubConnection!;
+    hub.off('DriverLocationUpdated');
+    hub.off('DriverStatusUpdated');
+    hub.off('JobAssigned');
 
-    this.driverHubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${this.baseUrl}/hubs/drivers`, {
-        accessTokenFactory: () => token,
-      })
-      .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
-      .configureLogging(signalR.LogLevel.Warning)
-      .build();
-
-    this.driverHubConnection.on('DriverLocationUpdated', (driverId: number, lat: number, lng: number) => {
+    hub.on('DriverLocationUpdated', (driverId: number, lat: number, lng: number) => {
       onDriverLocation?.(driverId, lat, lng);
     });
 
-    this.driverHubConnection.on('DriverStatusUpdated', (driverId: number, status: string) => {
+    hub.on('DriverStatusUpdated', (driverId: number, status: string) => {
       onDriverStatus?.(driverId, status);
     });
 
-    this.driverHubConnection.on('JobAssigned', (jobId: number) => {
+    hub.on('JobAssigned', (jobId: number) => {
       // Driver received new job assignment - could trigger notification
       console.log('Driver assigned job:', jobId);
     });
-
-    this.driverHubConnection.onclose(() => {
-      console.log('SignalR DriverHub disconnected');
-    });
-
-    try {
-      await this.driverHubConnection.start();
-      console.log('SignalR DriverHub connected');
-    } catch (err) {
-      console.error('SignalR DriverHub connection failed:', err);
-    }
   }
 
   // TripSheet Hub
@@ -152,54 +163,61 @@ class SignalRService {
     onStopRemoved?: StopRemovedCallback,
     onStopsReordered?: StopsReorderedCallback
   ) {
-    if (this.tripSheetHubConnection?.state === signalR.HubConnectionState.Connected) {
-      return;
+    if (this.tripSheetHubConnection?.state !== signalR.HubConnectionState.Connected) {
+      const token = this.getToken();
+      if (!token) {
+        console.warn('SignalR: No auth token available');
+        return;
+      }
+
+      this.tripSheetHubConnection = new signalR.HubConnectionBuilder()
+        .withUrl(`${this.baseUrl}/hubs/tripsheet`, {
+          accessTokenFactory: () => this.getToken() ?? '',
+        })
+        .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+        .configureLogging(signalR.LogLevel.Warning)
+        .build();
+
+      this.tripSheetHubConnection.onclose(() => {
+        console.log('SignalR TripSheetHub disconnected');
+      });
+
+      try {
+        await this.tripSheetHubConnection.start();
+        console.log('SignalR TripSheetHub connected');
+      } catch (err) {
+        console.error('SignalR TripSheetHub connection failed:', err);
+        return;
+      }
     }
 
-    const token = this.getToken();
-    if (!token) {
-      console.warn('SignalR: No auth token available');
-      return;
-    }
+    // The singleton outlives pages, so the mounted page replaces the previous handlers.
+    const hub = this.tripSheetHubConnection!;
+    hub.off('TripSheetCreated');
+    hub.off('TripSheetStatusChanged');
+    hub.off('StopAdded');
+    hub.off('StopRemoved');
+    hub.off('StopsReordered');
 
-    this.tripSheetHubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${this.baseUrl}/hubs/tripsheet`, {
-        accessTokenFactory: () => token,
-      })
-      .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
-      .configureLogging(signalR.LogLevel.Warning)
-      .build();
-
-    this.tripSheetHubConnection.on('TripSheetCreated', (tripSheet: TripSheet) => {
+    hub.on('TripSheetCreated', (tripSheet: TripSheet) => {
       onTripSheetCreated?.(tripSheet);
     });
 
-    this.tripSheetHubConnection.on('TripSheetStatusChanged', (tripSheetId: number, status: number) => {
+    hub.on('TripSheetStatusChanged', (tripSheetId: number, status: number) => {
       onTripSheetStatusChanged?.(tripSheetId, status);
     });
 
-    this.tripSheetHubConnection.on('StopAdded', (tripSheetId: number, item: TripSheetItem) => {
+    hub.on('StopAdded', (tripSheetId: number, item: TripSheetItem) => {
       onStopAdded?.(tripSheetId, item);
     });
 
-    this.tripSheetHubConnection.on('StopRemoved', (tripSheetId: number, itemId: number) => {
+    hub.on('StopRemoved', (tripSheetId: number, itemId: number) => {
       onStopRemoved?.(tripSheetId, itemId);
     });
 
-    this.tripSheetHubConnection.on('StopsReordered', (tripSheetId: number) => {
+    hub.on('StopsReordered', (tripSheetId: number) => {
       onStopsReordered?.(tripSheetId);
     });
-
-    this.tripSheetHubConnection.onclose(() => {
-      console.log('SignalR TripSheetHub disconnected');
-    });
-
-    try {
-      await this.tripSheetHubConnection.start();
-      console.log('SignalR TripSheetHub connected');
-    } catch (err) {
-      console.error('SignalR TripSheetHub connection failed:', err);
-    }
   }
 
   async joinTripSheetGroup(tripSheetId: number) {

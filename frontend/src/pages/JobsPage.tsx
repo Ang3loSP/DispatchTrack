@@ -688,7 +688,6 @@ export const JobsPage: React.FC = () => {
               <option value="Low">Low</option>
               <option value="Normal">Normal</option>
               <option value="High">High</option>
-              <option value="Urgent">Urgent</option>
             </select>
           </div>
 
