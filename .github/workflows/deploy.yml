@@ -21,12 +21,12 @@ jobs:
       - name: Trigger Render Deploy Hook
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        if: ${{ env.RENDER_DEPLOY_HOOK != '' }}
         run: |
-          curl -X POST "${{ env.RENDER_DEPLOY_HOOK }}"
-          echo "✅ Deploy hook triggered"
-
-      - name: Wait for deploy (optional)
-        run: |
-          echo "Render deploy initiated. Check Render dashboard for status."
-          echo "Typical deploy time: 2-4 minutes (includes cold start on free tier)."
+          # A missing secret must fail the workflow: a green "Deploy to Render" that
+          # deployed nothing is how production drifted four commits behind.
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "::error::RENDER_DEPLOY_HOOK is not set - CI passed but nothing was deployed."
+            exit 1
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK"
+          echo "Deploy hook triggered. Render dashboard has build status (2-4 min, cold start on free tier)."

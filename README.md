@@ -194,7 +194,7 @@ DispatchTrack/
 
 1. **Push to GitHub** → CI runs (build, test, docker)
 2. **On main + green CI** → Deploy workflow triggers Render Deploy Hook
-3. **Render** pulls image from GitHub Container Registry, runs container
+3. **Render** rebuilds the Docker image from source and runs the container
 4. **Neon PostgreSQL** + **Upstash Redis** connected via env vars
 5. **Health checks** hit `/health` (no DB/Redis calls)
 

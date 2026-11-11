@@ -226,7 +226,7 @@ npm run build       # Vite production build
 ### CI/CD Flow
 1. Push to `main` → GitHub Actions CI runs (build, test, docker)
 2. On green CI → Deploy workflow triggers Render Deploy Hook
-3. Render pulls image from GHCR, builds container, deploys
+3. Render rebuilds the Docker image from source and deploys
 4. Health checks hit `/health` (no DB/Redis calls)
 
 ---

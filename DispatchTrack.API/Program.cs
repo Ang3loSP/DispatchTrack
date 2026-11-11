@@ -174,15 +174,36 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Seed demo data on startup if database is empty
+// Migration state is logged on every start, so "did the schema update?" is answered by the
+// deploy log instead of a 500 later. Migrations apply only when explicitly enabled (plan §8).
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var migrateOnStartup = bool.TryParse(app.Configuration["MigrateOnStartup"], out var flag) && flag;
+    var pending = (await context.Database.GetPendingMigrationsAsync()).ToList();
 
-    // Migrations apply at startup only when explicitly enabled (plan §8: env flag, e.g. on Render).
-    if (bool.TryParse(app.Configuration["MigrateOnStartup"], out var migrateOnStartup) && migrateOnStartup)
+    if (pending.Count == 0)
     {
-        await context.Database.MigrateAsync();
+        app.Logger.LogInformation("Database schema is up to date.");
+    }
+    else if (migrateOnStartup)
+    {
+        app.Logger.LogInformation("Applying {Count} pending migration(s): {Migrations}", pending.Count, string.Join(", ", pending));
+        try
+        {
+            await context.Database.MigrateAsync();
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogCritical(ex, "Migration failed - refusing to serve traffic against a mismatched schema.");
+            throw;
+        }
+    }
+    else
+    {
+        app.Logger.LogWarning(
+            "Database is {Count} migration(s) behind: {Migrations}. Run 'dotnet ef database update', or set MigrateOnStartup=true.",
+            pending.Count, string.Join(", ", pending));
     }
 
     var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
