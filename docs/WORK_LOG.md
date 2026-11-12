@@ -77,4 +77,6 @@ log prints `Database schema is up to date.` either way; the next schema change (
 | **B4** | `ISignalRService` broadcasts for trip-sheet changes | planned |
 | **B5** | Concurrency token → `xmin` on `TripSheet`/`TripSheetItem` + two-writer test (#4) | approved |
 | **B6** | `TripSheetWorkflowIntegrationTests` (create → add → depart → return → complete; duplicate number; non-queue job) + HTTP-level coverage once B2 exists | planned |
+| **R1/R2** | Stop sequencing then the real OSRM route line in the board — mapping and sizes in `docs/ROUTE_PLANNING_INTEGRATION_PLAN.md` | planned (after B3) |
+| **R3/R4** | Geocoding, then the optional `/route-planning` page | planned (after B6) |
 | backlog | #7 SPA fallback swallows `/api` 404s, #8 no `GET /api/users`, #12 mislabelled stat tile, remove committed Playwright artifacts | backlog |

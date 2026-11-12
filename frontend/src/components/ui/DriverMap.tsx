@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapPin, Truck } from 'lucide-react';
 import L from 'leaflet';
@@ -136,18 +136,6 @@ export const DriverMap: React.FC<DriverMapProps> = ({
           </Popup>
         </Marker>
       ))}
-
-      {jobs.length >= 2 && (
-        <Polyline
-          positions={jobs.map((j) => [j.lat, j.lng] as [number, number])}
-          color="#FF4D00"
-          weight={3}
-          opacity={0.7}
-          dashArray="8, 8"
-          lineCap="round"
-          lineJoin="round"
-        />
-      )}
 
       {driverLocation && (
         <Marker
