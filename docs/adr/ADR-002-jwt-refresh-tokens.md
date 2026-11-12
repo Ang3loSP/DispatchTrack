@@ -14,7 +14,7 @@ DispatchTrack needs stateless authentication for a React SPA backed by ASP.NET C
 ## Decision
 **Access Token:** JWT, 15-minute expiry, signed with HS256 (32+ char secret), claims: `sub` (user ID), `role`, `email`. Sent as `Authorization: Bearer <token>`.
 
-**Refresh Token:** Cryptographically random opaque value (256-bit), 7-day expiry, **stored hashed (SHA-256)** in database. Sent as **httpOnly + Secure + SameSite=Strict cookie** (`refreshToken`).
+**Refresh Token:** Cryptographically random opaque value (256-bit), 7-day expiry, **stored hashed (SHA-256)** in database. Sent as an **httpOnly + SameSite=Strict cookie** (`refreshToken`); the `Secure` flag is set when the request arrives over HTTPS (`Secure = Request.IsHttps`), which is always true in production and false against the local API over plain HTTP.
 
 **Rotation:** On every `/api/auth/refresh`:
 1. Validate cookie → hash → lookup in DB

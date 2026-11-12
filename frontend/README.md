@@ -7,11 +7,14 @@ React 19 + TypeScript + Vite 8 + Tailwind CSS 4 single-page application for the 
 ```bash
 cd frontend
 npm install
-npm run dev          # http://localhost:5173 (proxies /api to localhost:5084)
-npm run build        # Production build to dist/
+npm run dev          # http://localhost:5173 (proxies /api and /hubs to localhost:5084)
+npm run build        # tsc -b && vite build → dist/
 npm run lint         # oxlint (fast, Rust-based)
-npx tsc --noEmit     # TypeScript typecheck
+npx playwright test  # E2E smoke spec (needs dev server + API running)
 ```
+
+> `npx tsc --noEmit` does nothing here: `tsconfig.json` is a solution file with `references` and no
+> `files`. Use `npm run build` (it runs `tsc -b` first).
 
 ## 📦 Dependencies
 
@@ -21,11 +24,15 @@ npx tsc --noEmit     # TypeScript typecheck
 | `react-router-dom` | Client-side routing |
 | `@tanstack/react-query` | Server state, caching, refetching |
 | `axios` | HTTP client with interceptors |
+| `@microsoft/signalr` | Real-time connection to the three hubs |
+| `leaflet` + `react-leaflet` | Driver map (OpenStreetMap tiles) |
 | `lucide-react` | Icons (tree-shakeable) |
 | `@fontsource/inter` | Self-hosted Inter font |
 | `tailwindcss` + `@tailwindcss/vite` | Utility-first CSS (v4, CSS variables) |
 
-**Dev Dependencies:** `typescript`, `vite`, `@vitejs/plugin-react`, `oxlint`, `@types/*`
+**Dev Dependencies:** `typescript`, `vite`, `@vitejs/plugin-react`, `oxlint`, `@playwright/test`, `@types/*`
+
+`src/utils/cn.ts` is a 2-line class-name joiner — there is no `clsx`/`tailwind-merge` dependency.
 
 ## 🏗 Project Structure
 
@@ -36,7 +43,7 @@ frontend/
 │   │   ├── client.ts         # Axios instance + 401 refresh interceptor
 │   │   └── endpoints.ts      # Typed API functions (authApi, jobsApi, ...)
 │   ├── components/
-│   │   ├── ui/               # 8 hand-rolled primitives
+│   │   ├── ui/               # 8 hand-rolled primitives + DriverMap
 │   │   │   ├── Button.tsx
 │   │   │   ├── Input.tsx
 │   │   │   ├── Card.tsx
@@ -44,33 +51,41 @@ frontend/
 │   │   │   ├── Modal.tsx
 │   │   │   ├── Drawer.tsx
 │   │   │   ├── Skeleton.tsx
-│   │   │   └── EmptyState.tsx
+│   │   │   ├── EmptyState.tsx
+│   │   │   └── DriverMap.tsx # Leaflet wrapper (stops + live driver marker)
 │   │   ├── auth/
 │   │   │   └── ProtectedRoute.tsx
 │   │   └── layout/
 │   │       └── Shell.tsx     # Sidebar, topbar, bottom nav, modals
 │   ├── context/
-│   │   ├── AuthContext.tsx   # JWT in memory, refresh via cookie
+│   │   ├── AuthContext.tsx   # JWT in memory, refresh via cookie, SignalR lifecycle
 │   │   └── ThemeContext.tsx  # Dark/light toggle (localStorage)
 │   ├── pages/
 │   │   ├── LoginPage.tsx
 │   │   ├── DashboardPage.tsx
 │   │   ├── JobsPage.tsx
+│   │   ├── DispatchBoardPage.tsx
 │   │   ├── DriverViewPage.tsx
 │   │   └── AdminUsersPage.tsx
+│   ├── services/
+│   │   └── signalr.ts        # Singleton, one connection per hub, auto-reconnect
 │   ├── types/
 │   │   └── index.ts          # Shared TypeScript interfaces
 │   ├── utils/
-│   │   └── cn.ts             # clsx + tailwind-merge helper
+│   │   └── cn.ts             # Class-name joiner
 │   ├── App.tsx               # Routes + providers
 │   ├── main.tsx              # Entry point
 │   └── index.css             # Design tokens + Tailwind imports
+├── e2e/
+│   └── smoke.spec.ts         # Playwright (not wired into CI)
 ├── public/                   # Static assets (favicon, icons.svg)
 ├── dist/                     # Production build (gitignored, created by build)
 ├── package.json
-├── tsconfig.json
-├── vite.config.ts
-└── .env.example              # (optional) VITE_API_BASE_URL
+├── playwright.config.ts
+├── tsconfig.json             # Solution file — references only
+├── tsconfig.app.json
+├── tsconfig.node.json
+└── vite.config.ts
 ```
 
 ## 🎨 Design System
@@ -78,18 +93,19 @@ frontend/
 **Tokens** (`src/index.css` — CSS variables consumed by Tailwind):
 ```css
 :root {
-  --bg-page: #FAFAFA;
+  --bg-page: #D6EAF8;          /* Ice Blue */
   --bg-surface: #FFFFFF;
-  --border-hairline: #E5E7EB;
-  --text-main: #111827;
-  --text-muted: #6B7280;
-  --color-accent: #4F46E5;    /* Indigo */
-  --color-success: #059669;   /* Delivered */
-  --color-warning: #D97706;   /* InTransit */
-  --color-danger: #DC2626;    /* Failed */
-  --color-info: #0284C7;      /* Assigned */
+  --border-hairline: #B3D4F0;
+  --text-main: #0A0E17;        /* Midnight Ink */
+  --text-muted: #3D5A7A;
+  --color-accent: #FF4D00;     /* Vermilion */
+  --color-accent-hover: #E63E00;
+  --color-success: #059669;    /* Delivered */
+  --color-warning: #D97706;    /* InTransit */
+  --color-danger: #DC2626;     /* Failed */
+  --color-info: #0284C7;       /* Assigned */
 }
-.dark { /* dark-mode overrides */ }
+.dark { /* inverted palette, accent #FF5A3D */ }
 ```
 
 **Status Badge** — signature pattern: tinted bg (~10%) + solid text + 6px dot
@@ -105,6 +121,7 @@ frontend/
 | `Drawer` | Slide-over panel (job detail), same a11y as Modal |
 | `Skeleton` | Variants: table-row, card, stat-tile |
 | `EmptyState` | Message + optional action button |
+| `DriverMap` | Leaflet + OpenStreetMap; job markers and live driver position; `h-[350px]` on the driver page |
 
 ## 🔐 Authentication Flow
 
@@ -122,7 +139,8 @@ frontend/
 | Login | `/login` | Public | Demo autofill buttons, theme toggle |
 | Dashboard | `/dashboard` | Admin, Dispatcher | 4 stat tiles (clickable), jobs table, unassigned queue, fleet status |
 | Jobs | `/jobs` | Admin, Dispatcher | Filter chips, pagination, search, detail drawer (assign/unassign), create modal |
-| Driver View | `/driver` | Driver, Admin | Mobile-first cards, thumb-reachable actions (Start → Delivered/Failed), failed modal |
+| Dispatch Board | `/dispatch-board` | Admin, Dispatcher | Pending-job pool (status chips/search), open trip sheets, select jobs → create trip sheet, manifest modal + `window.print()`. Create posts to a not-yet-implemented endpoint, so it currently fails with a console error; drag highlight is visual only and reordering isn't wired |
+| Driver View | `/driver` | Driver, Admin | Mobile-first cards, thumb-reachable actions (Start → Delivered/Failed), failed modal, Leaflet map with live position |
 | Admin Users | `/users` | Admin | Provision staff, driver fleet table, demo reset (styled modal) |
 
 ## ♿ Accessibility (WCAG AA)
@@ -161,15 +179,31 @@ dashboardApi.getSummary()
 usersApi.createUser(input)
 
 demoApi.resetDemo()
+
+tripSheetApi.getOpen()
+tripSheetApi.getById(id)
+tripSheetApi.getByDriver(driverId)
+// write calls below have no server endpoint yet (B2) — they 404
+tripSheetApi.create(input)
+tripSheetApi.addJobs(id, input)
+tripSheetApi.removeJob(tripSheetId, jobId)
+tripSheetApi.reorderStops(id, map)
+tripSheetApi.depart(id)
+tripSheetApi.returnTrip(id)
+tripSheetApi.complete(id)
+tripSheetApi.cancel(id)
+tripSheetApi.delete(id)
 ```
 
 ## 🧪 Quality Gates
 
 ```bash
 npm run lint        # oxlint — 0 errors, 0 warnings expected
-npx tsc --noEmit    # Strict TypeScript — no errors
-npm run build       # Vite production build — <2s, verbatimModuleSyntax compliant
+npm run build       # tsc -b && vite build — the only real typecheck
 ```
+
+`npx tsc --noEmit` is not a gate: the root `tsconfig.json` has no files, only project references.
+Playwright has one smoke spec (`e2e/smoke.spec.ts`) and is not part of CI.
 
 ## 📱 Responsive Breakpoints
 
@@ -183,10 +217,11 @@ npm run build       # Vite production build — <2s, verbatimModuleSyntax compli
 
 | File | Purpose |
 |------|---------|
-| `vite.config.ts` | Vite plugins, dev server proxy (`/api` → `localhost:5084`) |
-| `tsconfig.json` | Strict mode, `verbatimModuleSyntax`, path aliases |
-| `tsconfig.app.json` | App-specific TS config (extends base) |
+| `vite.config.ts` | Vite plugins, dev server proxy (`/api` and `/hubs` incl. WebSocket → `localhost:5084`) |
+| `tsconfig.json` | Solution file — references `tsconfig.app.json` and `tsconfig.node.json`, no `files` |
+| `tsconfig.app.json` | App TS config — strict, `verbatimModuleSyntax`; no path aliases |
 | `tsconfig.node.json` | Node scripts config (Vite config itself) |
+| `playwright.config.ts` | Playwright config for the single smoke spec |
 
 ## 🐳 Docker Integration
 

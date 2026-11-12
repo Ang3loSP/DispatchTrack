@@ -1,14 +1,14 @@
 # DispatchTrack Frontend — Design Direction
 
-The accepted visual direction for the React frontend (Phase 6). Phase 6/11 work builds
+The accepted visual direction for the React frontend. New screens and components build
 against this document; deviations should update it in the same change.
 
 ## Document Info
 
 - Owner: Angelo
-- Last updated: 2026-10-20
-- Applies to: `frontend/` (not yet scaffolded as of this writing)
-- Status: accepted — pending implementation in Phase 6
+- Last updated: 2026-11-12
+- Applies to: `frontend/` (implemented — 6 pages, 8 primitives + `DriverMap`)
+- Status: accepted — implemented; this document stays the reference for visual changes
 
 ## Context
 
@@ -71,8 +71,13 @@ Consistent everywhere: tables, cards, dashboard tiles, job detail.
   each clickable → filtered job list. Below: recent jobs table + unassigned-queue side panel.
 - **Jobs list:** real table — Status badge, ID, Pickup → Dropoff, Driver, Time. Status
   filter chips + pagination. Row click → detail view with status-history timeline.
+- **Dispatch board:** two panes — the pending-job pool (status chips + search) and open trip
+  sheets. Selecting jobs and creating a trip sheet opens a manifest modal; the manifest is
+  printed with `window.print()` and a `@media print` block rather than a separate route.
+  Drag highlight exists; reordering is not wired yet.
 - **Driver view:** mobile-first cards, one job per card, large status-transition button at
-  the bottom ("Start delivery" → "Mark delivered"). Thumb-reachable, no tables.
+  the bottom ("Start delivery" → "Mark delivered"). Thumb-reachable, no tables. A Leaflet
+  map (`DriverMap`) shows the day's stops and the driver's live position.
 - **States:** skeleton loaders (no spinners), one-line muted empty states ("No unassigned
   jobs — nice work."), inline error banners with retry.
 
@@ -91,8 +96,9 @@ Consistent everywhere: tables, cards, dashboard tiles, job detail.
 
 ## Components
 
-Hand-rolled primitives on Tailwind, no component library — 8 components:
-Button, Input, Card, StatusBadge, Modal, Drawer, Skeleton, EmptyState.
+Hand-rolled primitives on Tailwind, no component library — 8 primitives: Button, Input,
+Card, StatusBadge, Modal, Drawer, Skeleton, EmptyState. `DriverMap` (Leaflet) also lives in
+`components/ui/` but is a map wrapper, not a primitive.
 
 ## Alternatives considered
 
@@ -102,7 +108,7 @@ Button, Input, Card, StatusBadge, Modal, Drawer, Skeleton, EmptyState.
   recruiter audience. Revisit only for a hypothetical marketing/demo splash page, which is
   the one surface with room for it.
 - **Component library (shadcn, MUI):** rejected — keeps the bundle tiny and the code
-  demonstrable; 10 primitives is a solvable amount of work.
+  demonstrable; 8 primitives is a solvable amount of work.
 - **Deliberately plain stock Tailwind:** rejected — weakest portfolio screenshots.
 - **Dark-primary theme:** rejected in favor of light+dark toggle; light screenshots are
   more legible in a README.

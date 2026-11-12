@@ -16,37 +16,37 @@ A Redis cache (Upstash free tier: 256 MB, ~500K commands/mo) can serve the dashb
 
 ## Decision
 **Cache is non-critical.** The dashboard endpoint:
-1. **Tries Redis first** (`IDistributedCache.GetAsync`)
+1. **Tries Redis first** (`IDistributedCache.GetStringAsync`)
 2. **On any failure** (timeout, connection error, key missing) → **falls back to DB** transparently
-3. **Writes to Redis** on successful DB query (fire-and-forget, errors logged only)
-4. **TTL: 30 seconds** — balances freshness with command quota
+3. **Writes to Redis** on successful DB query, errors logged only
+4. **TTL: 60 seconds** — balances freshness with command quota
 5. **`/health` endpoint NEVER calls Redis** — only returns `{ status: "Healthy", timestamp }`
 
 **Configuration:**
 - `ConnectionStrings__Redis` set → use `StackExchangeRedis` (Upstash TLS)
 - Empty/unset → use `AddDistributedMemoryCache()` (local dev)
 
-**Cache Key:** `dashboard:summary` (single key, invalidated on job/driver mutations via `RemoveAsync`)
+**Cache Key:** `dashboard:summary` (single key; there is **no** `RemoveAsync` invalidation — the client
+refetches when SignalR delivers a job event, and the key otherwise expires after 60s)
 
 ## Consequences
 
 ### Positive
 - **Dashboard stays fast** (<5ms cached vs ~100ms DB)
-- **Neon compute stays cold** when dashboard polled (10s interval on frontend)
+- **Neon compute stays cold** between refreshes — the frontend does not poll, it refetches on SignalR events
 - **Zero downtime on Redis failure** — DB fallback is automatic
-- **Free tier friendly** — Upstash 500K commands/mo covers 30s TTL + 10s poll = ~8,640/day
+- **Free tier friendly** — fewer Redis commands than a polling client would issue
 - **Local dev works without Redis** — in-memory cache
 
 ### Trade-offs
-- **Stale data possible** (up to 30s) — acceptable for dashboard counts
-- **Cache invalidation** — manual `RemoveAsync` on mutations; could miss edge cases
+- **Stale data possible** (up to 60s) — acceptable for dashboard counts; a mutation-triggered refetch can still read a summary that is seconds old
+- **No explicit invalidation** — a missed or delayed SignalR event shows stale counts until the TTL expires
 - **Two code paths** — slightly more complex than "always DB"
 
 ## Implementation References
 - `DispatchTrack.API/Program.cs` — DI registration (Redis vs MemoryCache)
-- `DispatchTrack.API/Controllers/DashboardController.cs` — cache-aside pattern
-- `DispatchTrack.API/Services/DashboardService.cs` — aggregation logic
-- `frontend/src/pages/DashboardPage.tsx` — `refetchInterval: 10000`
+- `DispatchTrack.API/Controllers/DashboardController.cs` — cache-aside pattern **and** aggregation logic (there is no `DashboardService`)
+- `frontend/src/pages/DashboardPage.tsx` — `refetchInterval: false`, refetch driven by SignalR
 
 ## Alternatives Considered
 | Option | Rejected Because |
@@ -54,7 +54,6 @@ A Redis cache (Upstash free tier: 256 MB, ~500K commands/mo) can serve the dashb
 | Always query DB | Burns Neon compute seconds; slower UX |
 | Redis required (no fallback) | Redis failure breaks dashboard; Upstash free tier has no SLA |
 | Longer TTL (5min) | Stale counts confusing for dispatchers |
-| SignalR live updates | Over-engineered for MVP; adds complexity + connection management |
 | Materialized view in DB | Postgres doesn't auto-refresh; triggers add write overhead |
 
 ---

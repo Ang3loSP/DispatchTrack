@@ -18,7 +18,7 @@ We select **PostgreSQL** hosted on **Neon Serverless Postgres** for production a
 ### Provider Details
 - **EF Core Provider:** `Npgsql.EntityFrameworkCore.PostgreSQL`
 - **Hosting Platform:** Neon Free Tier (0.5 GB storage, serverless compute with scale-to-zero in 5 min, wakes in ~500ms).
-- **Concurrency Strategy:** PostgreSQL `xmin` system column via EF Core's `.UseXminAsConcurrencyToken()`.
+- **Concurrency Strategy:** PostgreSQL `xmin` system column via EF Core's `.UseXminAsConcurrencyToken()`. Currently applied to `Job` only — `TripSheet` and `TripSheetItem` still carry an unused `bytea` `Version` column and need the same mapping.
 
 ## Consequences
 - **Positive:**

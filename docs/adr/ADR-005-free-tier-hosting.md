@@ -12,9 +12,9 @@ DispatchTrack must deploy and run at **$0/month** to serve as a portfolio projec
 | Component | Provider | Free Tier Limits | Mitigation |
 |-----------|----------|------------------|------------|
 | **Container Host** | Render Web Service | 512 MB RAM, 750 hrs/mo, spins down after 15 min idle, ~30-50s cold start | Document cold start; health check keeps warm if pinged (but burns hours) |
-| **Database** | Neon Serverless PostgreSQL | 0.5 GB storage, compute auto-suspends to 0 after 5 min idle, wakes in ~500ms | Dashboard uses Redis cache; `/health` never calls DB; migrations at startup only |
-| **Cache** | Upstash Redis | 256 MB, ~500K commands/mo, TLS | Non-critical cache (falls back to DB); 30s TTL; health check never calls Redis |
-| **Container Registry** | GitHub Container Registry (GHCR) | 500 MB storage, 1 GB/mo bandwidth (public) | Multi-stage build keeps image ~200MB; CI pushes only on main |
+| **Database** | Neon Serverless PostgreSQL | 0.5 GB storage, compute auto-suspends to 0 after 5 min idle, wakes in ~500ms | Dashboard uses Redis cache; `/health` never calls DB; migrations via `dotnet ef database update` or `MigrateOnStartup=true` |
+| **Cache** | Upstash Redis | 256 MB, ~500K commands/mo, TLS | Non-critical cache (falls back to DB); 60s TTL; health check never calls Redis |
+| **Container Registry** | None | — | CI builds the image with `push: false`; Render clones the repo and rebuilds from the Dockerfile on each deploy-hook trigger |
 | **CI/CD** | GitHub Actions | 2,000 min/mo (private repos) | Cache layers; matrix only when needed; ~5 min per run |
 | **Secrets** | Render Env Vars + GitHub Actions Secrets | No Key Vault | Document in `.env.example`; never commit secrets |
 | **Monitoring** | Render Logs + `/health` + Uptime Pinger | No Datadog/New Relic | Structured Serilog logs; `/health` no deps; pinger hits `/health` only |
@@ -33,10 +33,10 @@ DispatchTrack must deploy and run at **$0/month** to serve as a portfolio projec
 | **Cold starts** | 30-50s first request after 15 min idle | Stated in README, live demo link |
 | **No custom domain SSL** (Render free) | Uses `*.onrender.com` | Acceptable for portfolio |
 | **Neon compute suspends** | First query after idle ~500ms | Dashboard cached; jobs API hits DB directly |
-| **Upstash command limit** | 500K/mo = ~16K/day | 30s TTL + 10s poll = 8.6K/day; headroom |
+| **Upstash command limit** | 500K/mo = ~16K/day | 60s TTL and no polling client; headroom |
 | **Render 750 hrs/mo** | ~31 days if always on | Spins down after 15 min; 750 hrs covers typical usage |
 | **No managed Key Vault** | Secrets in env vars | `.env.example` documents all; never committed |
-| **Shared Neon DB for tests** | Test parallelization disabled | Phase 8: Testcontainers for isolation |
+| **Shared Neon DB for tests** | Tests read `ConnectionStrings__Default`; pointing it at Neon means tests write to the same database as production. CI uses its own Postgres service container | Use docker-compose Postgres locally; Testcontainers for real isolation |
 
 ## Configuration Management
 
